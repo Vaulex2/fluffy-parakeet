@@ -1,4 +1,4 @@
-"""SAT Vocabulary Exercises PDF Generator — generates sat_vocabulary_exercises.pdf"""
+"""SAT Vocabulary Exercises PDF Generator — generates SAT_exercises.pdf"""
 
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
@@ -1765,7 +1765,7 @@ def later_pages(canvas_obj, doc):
 # ---------------------------------------------------------------------------
 
 def main():
-    output_path = "sat_vocabulary_exercises.pdf"
+    output_path = "SAT_exercises.pdf"
     doc = SimpleDocTemplate(
         output_path,
         pagesize=letter,

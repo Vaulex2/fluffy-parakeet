@@ -6,8 +6,8 @@ Generates a professional, student-friendly SAT vocabulary exercise PDF with 100 
 
 ```bash
 pip install -r requirements.txt
-python sat_vocabulary_exercises.py
-# → sat_vocabulary_exercises.pdf
+python SAT_exercises.py
+# → SAT_exercises.pdf
 ```
 
 ## What's Inside the PDF (44 pages)
