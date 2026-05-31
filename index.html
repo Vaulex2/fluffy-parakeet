@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sushi GO — Namangan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@300;400;500;600;700;800&family=Caveat+Brush&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: ['selector', '[data-theme="dark"]'],
+      theme: {
+        extend: {
+          colors: {
+            ink:   '#0B0B0B',
+            red:   '#E11D2A',
+            cream: '#F4ECD8',
+          },
+          fontFamily: {
+            display: ['Anton', 'Impact', 'sans-serif'],
+            body:    ['Manrope', 'sans-serif'],
+            brush:   ['Caveat Brush', 'cursive'],
+          },
+          transitionTimingFunction: {
+            expo: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: #0B0B0B; color: #F4ECD8; font-family: 'Manrope', sans-serif; }
+
+    /* Seigaiha (Japanese wave) SVG pattern */
+    .pattern-seigaiha {
+      background-color: #0B0B0B;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M30 0 a30 30 0 0 1 30 30 H0 A30 30 0 0 1 30 0z' fill='none' stroke='rgba(244,236,216,0.06)' stroke-width='1'/%3E%3Cpath d='M0 30 a30 30 0 0 1 30-30' fill='none' stroke='rgba(244,236,216,0.06)' stroke-width='1'/%3E%3Cpath d='M30 30 a30 30 0 0 1 30-30' fill='none' stroke='rgba(244,236,216,0.06)' stroke-width='1'/%3E%3C/svg%3E");
+    }
+
+    /* SVG grain texture overlay */
+    .grain::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Layered shadows */
+    .shadow-card {
+      box-shadow:
+        0 2px 4px rgba(0,0,0,0.3),
+        0 8px 24px rgba(0,0,0,0.4),
+        0 24px 48px rgba(225,29,42,0.08);
+    }
+    .shadow-img {
+      box-shadow:
+        0 4px 12px rgba(0,0,0,0.5),
+        0 16px 40px rgba(0,0,0,0.6);
+    }
+
+    /* Tight heading tracking */
+    .heading-display { letter-spacing: -0.03em; }
+    .body-copy { line-height: 1.7; }
+
+    /* Hover states */
+    .nav-link {
+      position: relative;
+      transition: color 0.2s cubic-bezier(0.16,1,0.3,1);
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 0;
+      width: 0; height: 1px;
+      background: #E11D2A;
+      transition: width 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .nav-link:hover::after { width: 100%; }
+    .nav-link:hover { color: #F4ECD8; }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #E11D2A; color: #F4ECD8;
+      padding: 14px 32px; border-radius: 6px;
+      font-family: 'Manrope', sans-serif; font-weight: 700;
+      font-size: 15px; letter-spacing: 0.02em;
+      border: none; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(225,29,42,0.3), 0 8px 24px rgba(225,29,42,0.15);
+      transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(225,29,42,0.4), 0 12px 32px rgba(225,29,42,0.2);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:focus-visible { outline: 2px solid #E11D2A; outline-offset: 3px; }
+
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: transparent; color: #F4ECD8;
+      padding: 13px 31px; border-radius: 6px;
+      font-family: 'Manrope', sans-serif; font-weight: 600;
+      font-size: 15px; letter-spacing: 0.02em;
+      border: 1px solid rgba(244,236,216,0.25); cursor: pointer;
+      transition: border-color 0.2s cubic-bezier(0.16,1,0.3,1), background 0.2s cubic-bezier(0.16,1,0.3,1);
+    }
+    .btn-outline:hover { border-color: rgba(244,236,216,0.6); background: rgba(244,236,216,0.06); }
+    .btn-outline:active { background: rgba(244,236,216,0.1); }
+    .btn-outline:focus-visible { outline: 2px solid #F4ECD8; outline-offset: 3px; }
+
+    .card-menu {
+      background: rgba(244,236,216,0.04);
+      border: 1px solid rgba(244,236,216,0.08);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .card-menu:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 24px 64px rgba(225,29,42,0.1);
+    }
+
+    .tag {
+      display: inline-block;
+      background: rgba(225,29,42,0.15);
+      color: #E11D2A;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 4px;
+    }
+
+    /* Scroll fade-in */
+    .reveal {
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ NAVBAR ═══════════════════════════════ -->
+<nav style="position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid rgba(244,236,216,0.08);backdrop-filter:blur(16px);background:rgba(11,11,11,0.8);">
+  <div style="max-width:1280px;margin:0 auto;padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:68px;">
+
+    <!-- Logo -->
+    <a href="#" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
+      <div style="width:36px;height:36px;background:#E11D2A;border-radius:6px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-family:'Anton',sans-serif;font-size:18px;color:#F4ECD8;letter-spacing:-0.02em;">S</span>
+      </div>
+      <span style="font-family:'Anton',sans-serif;font-size:22px;color:#F4ECD8;letter-spacing:-0.02em;">SUSHI GO</span>
+    </a>
+
+    <!-- Nav links -->
+    <div style="display:flex;align-items:center;gap:36px;">
+      <a href="#menu" class="nav-link" style="font-size:14px;font-weight:600;color:rgba(244,236,216,0.65);text-decoration:none;letter-spacing:0.02em;">Menu</a>
+      <a href="#about" class="nav-link" style="font-size:14px;font-weight:600;color:rgba(244,236,216,0.65);text-decoration:none;letter-spacing:0.02em;">About</a>
+      <a href="#reservations" class="nav-link" style="font-size:14px;font-weight:600;color:rgba(244,236,216,0.65);text-decoration:none;letter-spacing:0.02em;">Reservations</a>
+      <a href="#" class="nav-link" style="font-size:14px;font-weight:600;color:rgba(244,236,216,0.65);text-decoration:none;letter-spacing:0.02em;">Contact</a>
+    </div>
+
+    <!-- Right actions -->
+    <div style="display:flex;align-items:center;gap:16px;">
+      <!-- Language -->
+      <div style="display:flex;align-items:center;gap:4px;font-size:13px;color:rgba(244,236,216,0.5);font-weight:600;cursor:pointer;">
+        <span>UZ</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <!-- Cart -->
+      <button style="width:40px;height:40px;border-radius:8px;border:1px solid rgba(244,236,216,0.12);background:transparent;color:#F4ECD8;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;" onmouseover="this.style.background='rgba(244,236,216,0.08)'" onmouseout="this.style.background='transparent'">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1.5 1.5H3.5L4.8 9.5H13.5L15 4.5H3.8" stroke="#F4ECD8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="13" r="1.2" fill="#F4ECD8"/><circle cx="12" cy="13" r="1.2" fill="#F4ECD8"/></svg>
+      </button>
+      <button class="btn-primary" style="padding:10px 22px;font-size:13px;">Sign in</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════ HERO ═══════════════════════════════ -->
+<section class="pattern-seigaiha grain" style="position:relative;min-height:100vh;display:flex;align-items:center;padding-top:68px;overflow:hidden;">
+
+  <!-- Radial glow — left -->
+  <div style="position:absolute;top:20%;left:-10%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(225,29,42,0.12) 0%,transparent 70%);pointer-events:none;"></div>
+  <!-- Radial glow — right -->
+  <div style="position:absolute;bottom:10%;right:-5%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(244,236,216,0.05) 0%,transparent 70%);pointer-events:none;"></div>
+
+  <div style="max-width:1280px;margin:0 auto;padding:80px 40px;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:80px;position:relative;z-index:2;">
+
+    <!-- Text -->
+    <div>
+      <div class="tag" style="margin-bottom:24px;">Namangan, Uzbekistan</div>
+      <h1 class="heading-display" style="font-family:'Anton',sans-serif;font-size:clamp(64px,7vw,96px);line-height:0.95;color:#F4ECD8;margin-bottom:12px;">
+        FRESH<br>
+        <span style="color:#E11D2A;">SUSHI</span><br>
+        EVERY DAY
+      </h1>
+      <p class="body-copy" style="font-size:clamp(15px,1.2vw,17px);color:rgba(244,236,216,0.6);max-width:420px;margin-bottom:40px;margin-top:20px;">
+        Authentic Japanese flavors crafted with local ingredients. Dine in, takeaway, or order delivery — we bring the taste of Japan to Namangan.
+      </p>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <button class="btn-primary">
+          Order Now
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="btn-outline">View Menu</button>
+      </div>
+
+      <!-- Stats -->
+      <div style="display:flex;gap:40px;margin-top:56px;padding-top:40px;border-top:1px solid rgba(244,236,216,0.08);">
+        <div>
+          <p style="font-family:'Anton',sans-serif;font-size:36px;color:#F4ECD8;letter-spacing:-0.03em;">80+</p>
+          <p style="font-size:13px;color:rgba(244,236,216,0.45);font-weight:500;margin-top:2px;">Menu items</p>
+        </div>
+        <div>
+          <p style="font-family:'Anton',sans-serif;font-size:36px;color:#F4ECD8;letter-spacing:-0.03em;">4.9</p>
+          <p style="font-size:13px;color:rgba(244,236,216,0.45);font-weight:500;margin-top:2px;">Rating</p>
+        </div>
+        <div>
+          <p style="font-family:'Anton',sans-serif;font-size:36px;color:#F4ECD8;letter-spacing:-0.03em;">5+</p>
+          <p style="font-size:13px;color:rgba(244,236,216,0.45);font-weight:500;margin-top:2px;">Years open</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero image stack -->
+    <div style="position:relative;height:540px;">
+      <!-- Main image -->
+      <div style="position:absolute;top:0;right:0;width:440px;height:440px;border-radius:16px;overflow:hidden;" class="shadow-img">
+        <img src="https://placehold.co/880x880/1a1a1a/F4ECD8?text=Sushi+Platter" alt="Featured sushi platter" style="width:100%;height:100%;object-fit:cover;" />
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(11,11,11,0.5) 0%,transparent 60%);mix-blend-mode:multiply;"></div>
+      </div>
+      <!-- Floating card -->
+      <div style="position:absolute;bottom:20px;left:0;background:rgba(11,11,11,0.85);backdrop-filter:blur(20px);border:1px solid rgba(244,236,216,0.1);border-radius:12px;padding:20px 24px;width:220px;" class="shadow-card">
+        <p style="font-size:11px;color:#E11D2A;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">Today's Special</p>
+        <p style="font-family:'Anton',sans-serif;font-size:18px;color:#F4ECD8;letter-spacing:-0.02em;">Dragon Roll</p>
+        <p style="font-size:13px;color:rgba(244,236,216,0.5);margin-top:4px;margin-bottom:12px;">Avocado · Crab · Eel</p>
+        <p style="font-family:'Anton',sans-serif;font-size:22px;color:#E11D2A;">45 000 <span style="font-family:'Manrope',sans-serif;font-size:13px;font-weight:500;color:rgba(244,236,216,0.4);">UZS</span></p>
+      </div>
+      <!-- Accent circle -->
+      <div style="position:absolute;top:-24px;right:-24px;width:120px;height:120px;border-radius:50%;border:1px solid rgba(225,29,42,0.2);"></div>
+      <div style="position:absolute;top:-12px;right:-12px;width:96px;height:96px;border-radius:50%;border:1px solid rgba(225,29,42,0.1);"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ MARQUEE ═══════════════════════════════ -->
+<div style="background:#E11D2A;overflow:hidden;padding:14px 0;">
+  <div style="display:flex;gap:60px;white-space:nowrap;animation:marquee 18s linear infinite;">
+    <span style="font-family:'Anton',sans-serif;font-size:15px;letter-spacing:0.1em;color:#F4ECD8;">FRESH DAILY</span>
+    <span style="font-family:'Caveat Brush',cursive;font-size:18px;color:rgba(244,236,216,0.7);">✦</span>
+    <span style="font-family:'Anton',sans-serif;font-size:15px;letter-spacing:0.1em;color:#F4ECD8;">PREMIUM INGREDIENTS</span>
+    <span style="font-family:'Caveat Brush',cursive;font-size:18px;color:rgba(244,236,216,0.7);">✦</span>
+    <span style="font-family:'Anton',sans-serif;font-size:15px;letter-spacing:0.1em;color:#F4ECD8;">DINE IN · TAKEAWAY · DELIVERY</span>
+    <span style="font-family:'Caveat Brush',cursive;font-size:18px;color:rgba(244,236,216,0.7);">✦</span>
+    <span style="font-family:'Anton',sans-serif;font-size:15px;letter-spacing:0.1em;color:#F4ECD8;">FRESH DAILY</span>
+    <span style="font-family:'Caveat Brush',cursive;font-size:18px;color:rgba(244,236,216,0.7);">✦</span>
+    <span style="font-family:'Anton',sans-serif;font-size:15px;letter-spacing:0.1em;color:#F4ECD8;">PREMIUM INGREDIENTS</span>
+    <span style="font-family:'Caveat Brush',cursive;font-size:18px;color:rgba(244,236,216,0.7);">✦</span>
+    <span style="font-family:'Anton',sans-serif;font-size:15px;letter-spacing:0.1em;color:#F4ECD8;">DINE IN · TAKEAWAY · DELIVERY</span>
+    <span style="font-family:'Caveat Brush',cursive;font-size:18px;color:rgba(244,236,216,0.7);">✦</span>
+  </div>
+</div>
+<style>@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }</style>
+
+<!-- ═══════════════════════════════ FEATURED MENU ═══════════════════════════════ -->
+<section id="menu" style="background:#0B0B0B;padding:100px 40px;">
+  <div style="max-width:1280px;margin:0 auto;">
+
+    <!-- Section header -->
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:56px;">
+      <div>
+        <div class="tag" style="margin-bottom:16px;">Our Menu</div>
+        <h2 class="heading-display" style="font-family:'Anton',sans-serif;font-size:clamp(40px,5vw,64px);color:#F4ECD8;">
+          FEATURED<br>
+          <span style="color:#E11D2A;">DISHES</span>
+        </h2>
+      </div>
+      <a href="#" style="font-size:14px;font-weight:600;color:rgba(244,236,216,0.5);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.2s;" onmouseover="this.style.color='#F4ECD8'" onmouseout="this.style.color='rgba(244,236,216,0.5)'">
+        View all
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    <!-- Category pills -->
+    <div style="display:flex;gap:10px;margin-bottom:48px;flex-wrap:wrap;">
+      <button style="padding:8px 20px;border-radius:100px;background:#E11D2A;color:#F4ECD8;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:'Manrope',sans-serif;">All</button>
+      <button style="padding:8px 20px;border-radius:100px;background:transparent;color:rgba(244,236,216,0.5);font-size:13px;font-weight:600;border:1px solid rgba(244,236,216,0.12);cursor:pointer;font-family:'Manrope',sans-serif;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(244,236,216,0.35)';this.style.color='#F4ECD8'" onmouseout="this.style.borderColor='rgba(244,236,216,0.12)';this.style.color='rgba(244,236,216,0.5)'">Rolls</button>
+      <button style="padding:8px 20px;border-radius:100px;background:transparent;color:rgba(244,236,216,0.5);font-size:13px;font-weight:600;border:1px solid rgba(244,236,216,0.12);cursor:pointer;font-family:'Manrope',sans-serif;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(244,236,216,0.35)';this.style.color='#F4ECD8'" onmouseout="this.style.borderColor='rgba(244,236,216,0.12)';this.style.color='rgba(244,236,216,0.5)'">Nigiri</button>
+      <button style="padding:8px 20px;border-radius:100px;background:transparent;color:rgba(244,236,216,0.5);font-size:13px;font-weight:600;border:1px solid rgba(244,236,216,0.12);cursor:pointer;font-family:'Manrope',sans-serif;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(244,236,216,0.35)';this.style.color='#F4ECD8'" onmouseout="this.style.borderColor='rgba(244,236,216,0.12)';this.style.color='rgba(244,236,216,0.5)'">Ramen</button>
+      <button style="padding:8px 20px;border-radius:100px;background:transparent;color:rgba(244,236,216,0.5);font-size:13px;font-weight:600;border:1px solid rgba(244,236,216,0.12);cursor:pointer;font-family:'Manrope',sans-serif;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(244,236,216,0.35)';this.style.color='#F4ECD8'" onmouseout="this.style.borderColor='rgba(244,236,216,0.12)';this.style.color='rgba(244,236,216,0.5)'">Drinks</button>
+    </div>
+
+    <!-- Cards grid -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px;">
+
+      <!-- Card 1 -->
+      <div class="card-menu">
+        <div style="position:relative;height:220px;overflow:hidden;">
+          <img src="https://placehold.co/480x440/111/F4ECD8?text=Dragon+Roll" alt="Dragon Roll" style="width:100%;height:100%;object-fit:cover;transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"/>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(11,11,11,0.7) 0%,transparent 55%);mix-blend-mode:multiply;"></div>
+          <div class="tag" style="position:absolute;top:14px;left:14px;">Featured</div>
+        </div>
+        <div style="padding:20px;">
+          <h3 style="font-family:'Anton',sans-serif;font-size:20px;color:#F4ECD8;letter-spacing:-0.02em;margin-bottom:6px;">Dragon Roll</h3>
+          <p style="font-size:13px;color:rgba(244,236,216,0.45);line-height:1.5;margin-bottom:16px;">Avocado, crab stick, eel, sesame</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-family:'Anton',sans-serif;font-size:20px;color:#E11D2A;">45 000 <span style="font-size:12px;font-family:'Manrope',sans-serif;font-weight:500;color:rgba(244,236,216,0.35);">UZS</span></span>
+            <button style="width:36px;height:36px;border-radius:8px;background:#E11D2A;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(225,29,42,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'" onfocus="this.style.outline='2px solid #E11D2A';this.style.outlineOffset='2px'" onblur="this.style.outline='none'">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="#F4ECD8" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="card-menu">
+        <div style="position:relative;height:220px;overflow:hidden;">
+          <img src="https://placehold.co/480x440/111/F4ECD8?text=Salmon+Nigiri" alt="Salmon Nigiri" style="width:100%;height:100%;object-fit:cover;transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"/>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(11,11,11,0.7) 0%,transparent 55%);mix-blend-mode:multiply;"></div>
+        </div>
+        <div style="padding:20px;">
+          <h3 style="font-family:'Anton',sans-serif;font-size:20px;color:#F4ECD8;letter-spacing:-0.02em;margin-bottom:6px;">Salmon Nigiri</h3>
+          <p style="font-size:13px;color:rgba(244,236,216,0.45);line-height:1.5;margin-bottom:16px;">Fresh Atlantic salmon, sushi rice</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-family:'Anton',sans-serif;font-size:20px;color:#E11D2A;">32 000 <span style="font-size:12px;font-family:'Manrope',sans-serif;font-weight:500;color:rgba(244,236,216,0.35);">UZS</span></span>
+            <button style="width:36px;height:36px;border-radius:8px;background:#E11D2A;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(225,29,42,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="#F4ECD8" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="card-menu">
+        <div style="position:relative;height:220px;overflow:hidden;">
+          <img src="https://placehold.co/480x440/111/F4ECD8?text=Tonkotsu+Ramen" alt="Tonkotsu Ramen" style="width:100%;height:100%;object-fit:cover;transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"/>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(11,11,11,0.7) 0%,transparent 55%);mix-blend-mode:multiply;"></div>
+        </div>
+        <div style="padding:20px;">
+          <h3 style="font-family:'Anton',sans-serif;font-size:20px;color:#F4ECD8;letter-spacing:-0.02em;margin-bottom:6px;">Tonkotsu Ramen</h3>
+          <p style="font-size:13px;color:rgba(244,236,216,0.45);line-height:1.5;margin-bottom:16px;">Rich pork broth, soft egg, nori</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-family:'Anton',sans-serif;font-size:20px;color:#E11D2A;">55 000 <span style="font-size:12px;font-family:'Manrope',sans-serif;font-weight:500;color:rgba(244,236,216,0.35);">UZS</span></span>
+            <button style="width:36px;height:36px;border-radius:8px;background:#E11D2A;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(225,29,42,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="#F4ECD8" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="card-menu">
+        <div style="position:relative;height:220px;overflow:hidden;">
+          <img src="https://placehold.co/480x440/111/F4ECD8?text=Rainbow+Roll" alt="Rainbow Roll" style="width:100%;height:100%;object-fit:cover;transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"/>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(11,11,11,0.7) 0%,transparent 55%);mix-blend-mode:multiply;"></div>
+          <div class="tag" style="position:absolute;top:14px;left:14px;">New</div>
+        </div>
+        <div style="padding:20px;">
+          <h3 style="font-family:'Anton',sans-serif;font-size:20px;color:#F4ECD8;letter-spacing:-0.02em;margin-bottom:6px;">Rainbow Roll</h3>
+          <p style="font-size:13px;color:rgba(244,236,216,0.45);line-height:1.5;margin-bottom:16px;">Mixed fish, cucumber, tobiko</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-family:'Anton',sans-serif;font-size:20px;color:#E11D2A;">52 000 <span style="font-size:12px;font-family:'Manrope',sans-serif;font-weight:500;color:rgba(244,236,216,0.35);">UZS</span></span>
+            <button style="width:36px;height:36px;border-radius:8px;background:#E11D2A;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(225,29,42,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="#F4ECD8" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ ABOUT ═══════════════════════════════ -->
+<section id="about" style="background:#F4ECD8;padding:100px 40px;position:relative;overflow:hidden;">
+  <!-- Decorative circle -->
+  <div style="position:absolute;right:-80px;top:-80px;width:400px;height:400px;border-radius:50%;border:1px solid rgba(11,11,11,0.08);"></div>
+  <div style="position:absolute;right:-40px;top:-40px;width:320px;height:320px;border-radius:50%;border:1px solid rgba(11,11,11,0.05);"></div>
+
+  <div style="max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center;position:relative;">
+
+    <!-- Images -->
+    <div style="position:relative;">
+      <div style="border-radius:16px;overflow:hidden;" class="shadow-img">
+        <img src="https://placehold.co/640x480/1a1210/F4ECD8?text=Our+Kitchen" alt="Our kitchen" style="width:100%;height:400px;object-fit:cover;display:block;" />
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(11,11,11,0.3),transparent);mix-blend-mode:multiply;"></div>
+      </div>
+      <!-- Floating pill -->
+      <div style="position:absolute;bottom:-24px;right:-24px;background:#0B0B0B;border-radius:12px;padding:20px 28px;box-shadow:0 8px 32px rgba(11,11,11,0.25);">
+        <p style="font-family:'Caveat Brush',cursive;font-size:28px;color:#E11D2A;line-height:1;">Since 2019</p>
+        <p style="font-size:12px;color:rgba(244,236,216,0.5);margin-top:4px;font-weight:500;">Serving Namangan</p>
+      </div>
+    </div>
+
+    <!-- Text -->
+    <div>
+      <div class="tag" style="background:rgba(225,29,42,0.1);margin-bottom:20px;">Our Story</div>
+      <h2 class="heading-display" style="font-family:'Anton',sans-serif;font-size:clamp(36px,4vw,56px);color:#0B0B0B;margin-bottom:24px;line-height:1.05;">
+        BORN FROM A<br>
+        LOVE OF <span style="color:#E11D2A;">JAPAN</span>
+      </h2>
+      <p class="body-copy" style="font-size:16px;color:rgba(11,11,11,0.6);max-width:460px;margin-bottom:16px;">
+        Sushi GO started as a dream — to bring authentic Japanese cuisine to Namangan. We source the freshest ingredients daily, and every dish is crafted with respect for tradition.
+      </p>
+      <p class="body-copy" style="font-size:16px;color:rgba(11,11,11,0.6);max-width:460px;margin-bottom:40px;">
+        From our signature rolls to hand-pulled ramen, each plate tells a story of craft and care.
+      </p>
+
+      <!-- Features -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:8px;background:rgba(225,29,42,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8a6 6 0 1 0 12 0A6 6 0 0 0 2 8zm4 0l2 2 4-4" stroke="#E11D2A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <p style="font-weight:700;font-size:14px;color:#0B0B0B;margin-bottom:2px;">Fresh Daily</p>
+            <p style="font-size:13px;color:rgba(11,11,11,0.5);line-height:1.5;">Ingredients sourced every morning</p>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:8px;background:rgba(225,29,42,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.8 3.6L14 6.3l-3 2.9.7 4.1L8 11.4l-3.7 1.9.7-4.1-3-2.9 4.2-.7z" stroke="#E11D2A" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <p style="font-weight:700;font-size:14px;color:#0B0B0B;margin-bottom:2px;">Top Rated</p>
+            <p style="font-size:13px;color:rgba(11,11,11,0.5);line-height:1.5;">4.9 stars across all platforms</p>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:8px;background:rgba(225,29,42,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5C5 1.5 2.5 4 2.5 7c0 4.5 5.5 7.5 5.5 7.5S13.5 11.5 13.5 7c0-3-2.5-5.5-5.5-5.5zm0 7a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" stroke="#E11D2A" stroke-width="1.5"/></svg>
+          </div>
+          <div>
+            <p style="font-weight:700;font-size:14px;color:#0B0B0B;margin-bottom:2px;">Namangan</p>
+            <p style="font-size:13px;color:rgba(11,11,11,0.5);line-height:1.5;">Heart of the city</p>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:8px;background:rgba(225,29,42,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="5" width="12" height="9" rx="1.5" stroke="#E11D2A" stroke-width="1.5"/><path d="M5 5V4a3 3 0 0 1 6 0v1" stroke="#E11D2A" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <p style="font-weight:700;font-size:14px;color:#0B0B0B;margin-bottom:2px;">Loyalty Points</p>
+            <p style="font-size:13px;color:rgba(11,11,11,0.5);line-height:1.5;">Earn rewards every visit</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ RESERVATION CTA ═══════════════════════════════ -->
+<section id="reservations" class="pattern-seigaiha grain" style="position:relative;padding:100px 40px;overflow:hidden;">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:400px;background:radial-gradient(ellipse,rgba(225,29,42,0.15) 0%,transparent 70%);pointer-events:none;"></div>
+
+  <div style="max-width:800px;margin:0 auto;text-align:center;position:relative;z-index:2;">
+    <p style="font-family:'Caveat Brush',cursive;font-size:32px;color:#E11D2A;margin-bottom:12px;">Reserve your table</p>
+    <h2 class="heading-display" style="font-family:'Anton',sans-serif;font-size:clamp(40px,6vw,72px);color:#F4ECD8;line-height:0.95;margin-bottom:24px;">
+      BOOK YOUR<br>PERFECT EVENING
+    </h2>
+    <p class="body-copy" style="font-size:17px;color:rgba(244,236,216,0.55);max-width:480px;margin:0 auto 40px;">
+      Indoor, outdoor, VIP or bar seating. Choose your spot and let us take care of the rest.
+    </p>
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn-primary" style="padding:16px 40px;font-size:16px;">Make a Reservation</button>
+      <button class="btn-outline" style="padding:15px 39px;font-size:16px;">See Availability</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ FOOTER ═══════════════════════════════ -->
+<footer style="background:#080808;border-top:1px solid rgba(244,236,216,0.06);padding:60px 40px 40px;">
+  <div style="max-width:1280px;margin:0 auto;">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:60px;margin-bottom:56px;">
+
+      <!-- Brand -->
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <div style="width:32px;height:32px;background:#E11D2A;border-radius:6px;display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:'Anton',sans-serif;font-size:16px;color:#F4ECD8;">S</span>
+          </div>
+          <span style="font-family:'Anton',sans-serif;font-size:20px;color:#F4ECD8;letter-spacing:-0.02em;">SUSHI GO</span>
+        </div>
+        <p style="font-size:14px;color:rgba(244,236,216,0.4);line-height:1.7;max-width:260px;">
+          Authentic Japanese cuisine in the heart of Namangan, Uzbekistan.
+        </p>
+        <p style="font-size:13px;color:rgba(244,236,216,0.3);margin-top:16px;">Open daily · 11:00 – 23:00</p>
+      </div>
+
+      <!-- Links -->
+      <div>
+        <p style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(244,236,216,0.3);margin-bottom:20px;">Menu</p>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <a href="#" style="font-size:14px;color:rgba(244,236,216,0.55);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#F4ECD8'" onmouseout="this.style.color='rgba(244,236,216,0.55)'">Rolls</a>
+          <a href="#" style="font-size:14px;color:rgba(244,236,216,0.55);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#F4ECD8'" onmouseout="this.style.color='rgba(244,236,216,0.55)'">Nigiri</a>
+          <a href="#" style="font-size:14px;color:rgba(244,236,216,0.55);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#F4ECD8'" onmouseout="this.style.color='rgba(244,236,216,0.55)'">Ramen</a>
+          <a href="#" style="font-size:14px;color:rgba(244,236,216,0.55);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#F4ECD8'" onmouseout="this.style.color='rgba(244,236,216,0.55)'">Drinks</a>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(244,236,216,0.3);margin-bottom:20px;">Visit</p>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <a href="#" style="font-size:14px;color:rgba(244,236,216,0.55);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#F4ECD8'" onmouseout="this.style.color='rgba(244,236,216,0.55)'">About</a>
+          <a href="#" style="font-size:14px;color:rgba(244,236,216,0.55);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#F4ECD8'" onmouseout="this.style.color='rgba(244,236,216,0.55)'">Reservations</a>
+          <a href="#" style="font-size:14px;color:rgba(244,236,216,0.55);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#F4ECD8'" onmouseout="this.style.color='rgba(244,236,216,0.55)'">Contact</a>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(244,236,216,0.3);margin-bottom:20px;">Account</p>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <a href="#" style="font-size:14px;color:rgba(244,236,216,0.55);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#F4ECD8'" onmouseout="this.style.color='rgba(244,236,216,0.55)'">Sign In</a>
+          <a href="#" style="font-size:14px;color:rgba(244,236,216,0.55);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#F4ECD8'" onmouseout="this.style.color='rgba(244,236,216,0.55)'">Register</a>
+          <a href="#" style="font-size:14px;color:rgba(244,236,216,0.55);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#F4ECD8'" onmouseout="this.style.color='rgba(244,236,216,0.55)'">Orders</a>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding-top:32px;border-top:1px solid rgba(244,236,216,0.06);">
+      <p style="font-size:13px;color:rgba(244,236,216,0.25);">© 2025 Sushi GO. All rights reserved.</p>
+      <p style="font-size:13px;color:rgba(244,236,216,0.25);">Namangan, Uzbekistan</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

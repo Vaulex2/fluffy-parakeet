@@ -1,0 +1,24 @@
+{
+  "name": "projects/12885353957170723984",
+  "projectId": "12885353957170723984",
+  "title": "Sushi GO — Namangan",
+  "visibility": "PRIVATE",
+  "projectType": "PROJECT_DESIGN",
+  "origin": "STITCH",
+  "deviceType": "DESKTOP",
+  "designTheme": {
+    "colorMode": "DARK",
+    "headlineFont": "ANTON",
+    "bodyFont": "MANROPE",
+    "roundness": "ROUND_EIGHT",
+    "customColor": "#E11D2A",
+    "overridePrimaryColor": "#E11D2A",
+    "overrideNeutralColor": "#F4ECD8",
+    "colorVariant": "FIDELITY"
+  },
+  "designSystem": "assets/5641967015181579164",
+  "screens": {},
+  "metadata": {
+    "userRole": "OWNER"
+  }
+}

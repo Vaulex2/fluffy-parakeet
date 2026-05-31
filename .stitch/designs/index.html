@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SUSHI GO | Authentic Japanese Excellence</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Caveat+Brush&amp;family=Manrope:wght@300..800&amp;family=Public+Sans:wght@400..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#0B0B0B',
+                        surface: 'rgba(244,236,216,0.04)',
+                        'surface-border': 'rgba(244,236,216,0.08)',
+                        primary: '#E11D2A',
+                        text: {
+                            primary: '#F4ECD8',
+                            muted: 'rgba(244,236,216,0.55)'
+                        },
+                        light: {
+                            bg: '#F4ECD8',
+                            text: '#0B0B0B'
+                        }
+                    },
+                    fontFamily: {
+                        headline: ["Anton", "sans-serif"],
+                        display: ["Anton", "sans-serif"],
+                        body: ["Manrope", "sans-serif"],
+                        label: ["Manrope", "sans-serif"],
+                        accent: ["Caveat Brush", "cursive"]
+                    },
+                    letterSpacing: {
+                        tighter: '-0.03em',
+                    },
+                    lineHeight: {
+                        none: '0.95',
+                        relaxed: '1.7',
+                    },
+                    backgroundImage: {
+                        'seigaiha': 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23F4ECD8\' fill-opacity=\'0.04\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .underline-reveal {
+            position: relative;
+        }
+        .underline-reveal::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            transform: scaleX(0);
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: currentColor;
+            transform-origin: bottom right;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .underline-reveal:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+        
+        .img-hover-zoom {
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .group:hover .img-hover-zoom {
+            transform: scale(1.06);
+        }
+
+        .btn-hover-lift {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(225, 29, 42, 0.3), 0 8px 10px -6px rgba(225, 29, 42, 0.1);
+        }
+
+        /* Marquee Animation */
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            animation: marquee 20s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-background text-text-primary font-body antialiased selection:bg-primary selection:text-white overflow-x-hidden min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#0B0B0B]/85 backdrop-blur-xl border-b border-[#F4ECD8]/10 shadow-xl shadow-red-900/10">
+<div class="flex justify-between items-center px-8 py-4 max-w-full">
+<!-- Brand -->
+<a class="flex items-center gap-3 group hover:translate-y-[-2px] transition-transform duration-300 active:scale-95 duration-200" href="#">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="text-white font-headline font-black text-xl leading-none">S</span>
+</div>
+<span class="text-2xl font-headline font-black tracking-tighter text-[#E11D2A] leading-none">SUSHI GO</span>
+</a>
+<!-- Navigation (Web) -->
+<nav class="hidden md:flex items-center gap-8 font-body font-light">
+<a class="text-[#E11D2A] border-b-2 border-[#E11D2A] pb-1 hover:translate-y-[-2px] transition-transform duration-300 active:scale-95 duration-200" href="#">Menu</a>
+<a class="text-[#F4ECD8] hover:text-[#E11D2A] transition-colors duration-300 hover:translate-y-[-2px] hover-transform duration-300 active:scale-95 duration-200" href="#">About</a>
+<a class="text-[#F4ECD8] hover:text-[#E11D2A] transition-colors duration-300 hover:translate-y-[-2px] hover-transform duration-300 active:scale-95 duration-200" href="#">Reservations</a>
+<a class="text-[#F4ECD8] hover:text-[#E11D2A] transition-colors duration-300 hover:translate-y-[-2px] hover-transform duration-300 active:scale-95 duration-200" href="#">Contact</a>
+</nav>
+<!-- Actions -->
+<div class="flex items-center gap-6">
+<button class="hidden md:flex items-center gap-1 text-text-muted hover:text-text-primary transition-colors text-sm font-bold tracking-widest uppercase">
+                    UZ <span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+<button class="text-[#F4ECD8] hover:text-[#E11D2A] transition-colors relative hover:translate-y-[-2px] hover-transform duration-300 active:scale-95 duration-200">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="hidden md:block bg-primary text-white font-headline font-black tracking-tight px-6 py-2.5 rounded hover:bg-red-700 btn-hover-lift active:scale-95 duration-200">
+                    Sign In
+                </button>
+<!-- Mobile Menu Toggle -->
+<button class="md:hidden text-text-primary">
+<span class="material-symbols-outlined text-3xl">menu</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-grow pt-[88px]">
+<!-- Hero Section -->
+<section class="relative min-h-[90vh] flex items-center overflow-hidden bg-background bg-seigaiha">
+<!-- Radial Glow -->
+<div class="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen"></div>
+<div class="max-w-7xl mx-auto px-6 md:px-12 py-20 w-full grid md:grid-cols-2 gap-16 items-center relative z-10">
+<!-- Left: Typography & Stats -->
+<div class="space-y-8 relative">
+<div class="absolute -top-12 -left-12 text-[12rem] font-headline text-surface pointer-events-none select-none z-0">新鮮</div>
+<div class="relative z-10">
+<p class="font-accent text-primary text-3xl mb-4 transform -rotate-2">Taste the tradition</p>
+<h1 class="font-headline text-[clamp(4rem,8vw,8rem)] leading-[0.85] tracking-tighter text-text-primary uppercase flex flex-col">
+<span>FRESH</span>
+<span class="text-primary text-[clamp(4.5rem,9vw,9rem)] ml-[-0.05em] drop-shadow-2xl">SUSHI</span>
+<span>EVERY DAY</span>
+</h1>
+</div>
+<p class="font-body font-light text-text-muted text-lg md:text-xl max-w-[45ch] leading-relaxed">
+                        Experience the finest Japanese cuisine in Namangan. Hand-crafted rolls, fresh sashimi, and authentic ramen served in a modern atmosphere.
+                    </p>
+<div class="flex items-center gap-6 pt-4">
+<a class="bg-primary text-white font-headline text-xl px-8 py-4 rounded tracking-tight btn-hover-lift" href="#">
+                            ORDER NOW
+                        </a>
+<a class="text-text-primary font-headline text-lg tracking-tight underline-reveal hover:text-primary transition-colors flex items-center gap-2" href="#">
+                            View Menu <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<!-- Stats Row -->
+<div class="grid grid-cols-3 gap-8 pt-12 border-t border-surface-border mt-12">
+<div>
+<p class="font-headline text-3xl text-primary leading-none mb-1">50+</p>
+<p class="font-body text-sm text-text-muted">Unique Rolls</p>
+</div>
+<div>
+<p class="font-headline text-3xl text-primary leading-none mb-1">100%</p>
+<p class="font-body text-sm text-text-muted">Fresh Ingredients</p>
+</div>
+<div>
+<p class="font-headline text-3xl text-primary leading-none mb-1">4.9</p>
+<p class="font-body text-sm text-text-muted">Customer Rating</p>
+</div>
+</div>
+</div>
+<!-- Right: Imagery -->
+<div class="relative w-full aspect-square md:aspect-[4/5] rounded-xl border border-surface-border bg-surface p-4 flex items-center justify-center shadow-2xl shadow-primary/5">
+<div class="relative w-full h-full rounded-lg overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent z-10"></div>
+<img alt="Premium Sushi Platter" class="w-full h-full object-cover img-hover-zoom" src="https://lh3.googleusercontent.com/aida/ADBb0uhNCPMtGm_Zp0mEthfIUvUs4wf1MQPDi_xdxZ4LaurxKfS85pQxW4sDGhlk7YW0Sh2Fazvh2IxtYa6_EXD55C8s3KYtKZdemskTj6GzF1VqA9-JpEA_Mg1uyELwfqkzfrSnW44oiDDU-G8xW56wQrVAgmHUqBUMgHWFnulsDqEhe9DgYg-0vk_ttNbhljsdHIdZThCMzSdwMw4U0o2spg913bim_aUyhMXXliYwvlRj67TJEeOozLWEjVI"/>
+<!-- Floating Card -->
+<div class="absolute bottom-8 -left-8 md:-left-12 bg-background/90 backdrop-blur-md border border-surface-border rounded-lg p-4 shadow-2xl shadow-primary/20 z-20 flex items-center gap-4 w-72 transform transition-transform duration-500 hover:-translate-y-2">
+<div class="w-16 h-16 rounded bg-surface overflow-hidden flex-shrink-0">
+<img alt="Dragon Roll Detail" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/ADBb0uijkyg1Z6KWD_N5aIBQGMc6RMorexpNshiJVdLqo6J92AVUa9NTxDTeYJej7fR5uQixi9qBajPd5-4OJVmT1EtW7mW6VQEr9SqsvzHk8QCJ3tvC2WEPpuGf8sLvulaPqw-9i_WtOlqN3gH3ZugEdGu1PC-h3DcsZU7ewCl12Ch-cxvJhImynzIGPxE9f7Md89IRoDQPlTYjKMXaoPEadKGQSGMPJfWnVMAqRb2Y0pvckJyuBX9TkqVkVuFL"/>
+</div>
+<div>
+<p class="font-accent text-primary text-sm mb-0.5">Today's Special</p>
+<p class="font-headline text-lg tracking-tight leading-none mb-1 text-text-primary">Dragon Roll</p>
+<p class="font-body text-xs text-text-muted line-clamp-1">Eel, cucumber, avocado top</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Marquee -->
+<div class="bg-primary py-4 overflow-hidden flex whitespace-nowrap border-y border-red-900 shadow-lg shadow-primary/10 relative z-20">
+<div class="animate-marquee flex gap-12 font-headline text-2xl tracking-tight text-white items-center">
+<span>FRESH DAILY</span> <span class="material-symbols-outlined fill text-sm opacity-50">star</span>
+<span>PREMIUM INGREDIENTS</span> <span class="material-symbols-outlined fill text-sm opacity-50">star</span>
+<span>DINE IN · TAKEAWAY · DELIVERY</span> <span class="material-symbols-outlined fill text-sm opacity-50">star</span>
+<span>FRESH DAILY</span> <span class="material-symbols-outlined fill text-sm opacity-50">star</span>
+<span>PREMIUM INGREDIENTS</span> <span class="material-symbols-outlined fill text-sm opacity-50">star</span>
+<span>DINE IN · TAKEAWAY · DELIVERY</span> <span class="material-symbols-outlined fill text-sm opacity-50">star</span>
+</div>
+</div>
+<!-- Featured Dishes -->
+<section class="py-32 bg-background bg-seigaiha relative">
+<div class="max-w-7xl mx-auto px-6 md:px-12">
+<div class="flex justify-between items-end mb-16">
+<div>
+<h2 class="font-headline text-5xl md:text-6xl tracking-tighter uppercase mb-4">Featured <span class="text-primary">Dishes</span></h2>
+<p class="font-body text-text-muted max-w-xl text-lg">Curated selections from our master chefs, blending traditional techniques with modern presentation.</p>
+</div>
+<a class="hidden md:flex items-center gap-2 font-headline text-primary tracking-tight hover:text-white transition-colors underline-reveal" href="#">
+                        SEE FULL MENU <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Item 1 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[3/4] rounded-xl overflow-hidden mb-4 border border-surface-border bg-surface">
+<div class="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent z-10 opacity-80 group-hover:opacity-60 transition-opacity duration-300"></div>
+<img alt="Dragon Roll" class="w-full h-full object-cover img-hover-zoom" src="https://lh3.googleusercontent.com/aida/ADBb0uijkyg1Z6KWD_N5aIBQGMc6RMorexpNshiJVdLqo6J92AVUa9NTxDTeYJej7fR5uQixi9qBajPd5-4OJVmT1EtW7mW6VQEr9SqsvzHk8QCJ3tvC2WEPpuGf8sLvulaPqw-9i_WtOlqN3gH3ZugEdGu1PC-h3DcsZU7ewCl12Ch-cxvJhImynzIGPxE9f7Md89IRoDQPlTYjKMXaoPEadKGQSGMPJfWnVMAqRb2Y0pvckJyuBX9TkqVkVuFL"/>
+<div class="absolute top-4 right-4 z-20 bg-primary/90 text-white font-headline px-3 py-1 rounded text-sm backdrop-blur-sm shadow-lg">Popular</div>
+<div class="absolute bottom-4 left-4 z-20">
+<h3 class="font-headline text-2xl tracking-tight text-white mb-1">Dragon Roll</h3>
+<p class="font-body text-primary font-bold">120,000 UZS</p>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="group cursor-pointer md:mt-12">
+<div class="relative aspect-[3/4] rounded-xl overflow-hidden mb-4 border border-surface-border bg-surface">
+<div class="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent z-10 opacity-80 group-hover:opacity-60 transition-opacity duration-300"></div>
+<img alt="Salmon Nigiri" class="w-full h-full object-cover img-hover-zoom" src="https://lh3.googleusercontent.com/aida/ADBb0ug5v3l6jX6XmiHkS95ThSsVSzNWNufTWwYXJQ0LG3VAb3xOcZNUKfVCXiwz0SWRcpWMestTv_JYJiAiXRsJldVNS_rX4abb_OZqIAmCWC8nIlkmpub6Ie_KYkd-0U9km8H-JkIYtfoHzBDhiInqu9XnuHV7C0BJnIfn7G6TfASCkpRkxzscPfJTy47Or6JyBn8hXbMQt1GV7x4F_40u9Jn_9ykb6YeSx_rCfpXSo35_P20zGAQV2JAzDzCF"/>
+<div class="absolute bottom-4 left-4 z-20">
+<h3 class="font-headline text-2xl tracking-tight text-white mb-1">Salmon Nigiri</h3>
+<p class="font-body text-primary font-bold">60,000 UZS</p>
+</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[3/4] rounded-xl overflow-hidden mb-4 border border-surface-border bg-surface">
+<div class="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent z-10 opacity-80 group-hover:opacity-60 transition-opacity duration-300"></div>
+<img alt="Tonkotsu Ramen" class="w-full h-full object-cover img-hover-zoom" src="https://lh3.googleusercontent.com/aida/ADBb0uiQnQ8vkdWjZc7uPGTUY7ukrUe6dhq47q0-QdfPmveIBejjw_fyartPYkRF11l5udtKMCxmx_1Y81r2TcxBiASRTVv1DiOjixH5-BHX8CzHKQBwRUKYR8ADpdaNH199EIewJGI6N5pBTqhGZm23VHd0AhS4O6H9rFsA3kBkABf-eGCLIC0ojmnBigDa0f3EMey7Q2L-zz17XHfqOKip2ujuK_EIxWRuGqZ1Yl8uD5busnJUHJGB_1dPYsw"/>
+<div class="absolute top-4 right-4 z-20 bg-background/80 text-white font-headline px-3 py-1 rounded text-sm backdrop-blur-sm border border-surface-border shadow-lg">New</div>
+<div class="absolute bottom-4 left-4 z-20">
+<h3 class="font-headline text-2xl tracking-tight text-white mb-1">Tonkotsu Ramen</h3>
+<p class="font-body text-primary font-bold">85,000 UZS</p>
+</div>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="group cursor-pointer md:mt-12">
+<div class="relative aspect-[3/4] rounded-xl overflow-hidden mb-4 border border-surface-border bg-surface">
+<div class="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent z-10 opacity-80 group-hover:opacity-60 transition-opacity duration-300"></div>
+<img alt="Rainbow Roll" class="w-full h-full object-cover img-hover-zoom" src="https://lh3.googleusercontent.com/aida/ADBb0ujjI5dibVius1-fdiLTzxsUusq7_lq987nGUnYw8axAg6BeI_Qs0AI9Q6cPjPMYz4czKS7hCdn-00NfUPF_CD9MRI5TaGn3wKWWL2upNLGndC5mdmeZoDZZWdwHhHRBou71Cf5B9kHgpVA9wvRzx9Yp8yDR9pJW5MZfRik735lNFUPhgca-2TGgB95rdNopAS5sandwFYY2-SrUV8XRGXzZ51lbQ6yMpdVDrVa6y6KXShoE0dlKa-Ks84wj"/>
+<div class="absolute bottom-4 left-4 z-20">
+<h3 class="font-headline text-2xl tracking-tight text-white mb-1">Rainbow Roll</h3>
+<p class="font-body text-primary font-bold">110,000 UZS</p>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-12 flex justify-center md:hidden">
+<button class="bg-surface border border-surface-border px-8 py-3 rounded font-headline tracking-wide hover:bg-surface-border transition-colors">
+                        VIEW FULL MENU
+                    </button>
+</div>
+</div>
+</section>
+<!-- About Section (Light Section) -->
+<section class="py-32 bg-light-bg text-light-text relative overflow-hidden">
+<!-- Decorative accent -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-bl-full pointer-events-none"></div>
+<div class="max-w-7xl mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-16 items-center relative z-10">
+<!-- Left: Image Box -->
+<div class="relative">
+<div class="absolute -inset-4 bg-background/5 transform -rotate-3 rounded-2xl"></div>
+<div class="relative aspect-square md:aspect-[4/3] rounded-xl overflow-hidden shadow-2xl">
+<img alt="Sushi Chef at Work" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/ADBb0ugFojU5pVfQvMIAVrvE_ZXBnFDTCvHKlR7WM5A-pGIIyv477_14_L22WRFZPbM6oFowWLmXBctTjZk4iWEany6qhrWWV1r__Sq7iNkhZqON1gKEzWysmB1KNjmBNtTaMX7H9J5sS68EF7kaIJ64J4Mk1UEJcxrCb8vFQ4JpZ0lYxkU3do1FvPXAZcwjDJ0mQ65LYc6bjCTBB6C3IiZZyHZhnw-z8DwO-08uJmoA1aTAvAKhGN_OJ-Jvq3Y"/>
+</div>
+<!-- Floating Badge -->
+<div class="absolute -bottom-8 -right-8 bg-background p-6 rounded-full border-4 border-light-bg shadow-2xl flex flex-col items-center justify-center w-32 h-32 transform rotate-12">
+<span class="font-accent text-primary text-xl leading-none mb-1">Since</span>
+<span class="font-headline text-white text-3xl leading-none tracking-tight">2019</span>
+</div>
+</div>
+<!-- Right: Content -->
+<div class="space-y-8 lg:pl-12">
+<h2 class="font-headline text-[clamp(3.5rem,6vw,5.5rem)] leading-[0.9] tracking-tighter uppercase text-background">
+                        BORN FROM A<br/>
+<span class="text-primary">LOVE OF JAPAN</span>
+</h2>
+<p class="font-body text-lg text-background/80 leading-relaxed max-w-xl">
+                        At Sushi GO, we believe that authentic sushi is an art form. Our master chefs bring decades of experience from the finest kitchens, ensuring every slice, roll, and bowl tells a story of tradition and quality right here in Namangan.
+                    </p>
+<!-- Feature Grid -->
+<div class="grid grid-cols-2 gap-8 pt-8">
+<div>
+<div class="w-12 h-12 rounded bg-background/5 flex items-center justify-center mb-4 text-primary">
+<span class="material-symbols-outlined text-2xl">restaurant_menu</span>
+</div>
+<h4 class="font-headline text-xl mb-2 text-background">Master Chefs</h4>
+<p class="font-body text-sm text-background/70">Trained in traditional Japanese culinary arts.</p>
+</div>
+<div>
+<div class="w-12 h-12 rounded bg-background/5 flex items-center justify-center mb-4 text-primary">
+<span class="material-symbols-outlined text-2xl">set_meal</span>
+</div>
+<h4 class="font-headline text-xl mb-2 text-background">Fresh Catch</h4>
+<p class="font-body text-sm text-background/70">Premium ingredients sourced daily for quality.</p>
+</div>
+<div>
+<div class="w-12 h-12 rounded bg-background/5 flex items-center justify-center mb-4 text-primary">
+<span class="material-symbols-outlined text-2xl">storefront</span>
+</div>
+<h4 class="font-headline text-xl mb-2 text-background">Atmosphere</h4>
+<p class="font-body text-sm text-background/70">Modern dining space with a cozy vibe.</p>
+</div>
+<div>
+<div class="w-12 h-12 rounded bg-background/5 flex items-center justify-center mb-4 text-primary">
+<span class="material-symbols-outlined text-2xl">delivery_dining</span>
+</div>
+<h4 class="font-headline text-xl mb-2 text-background">Fast Delivery</h4>
+<p class="font-body text-sm text-background/70">Hot and fresh straight to your doorstep.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Reservation CTA -->
+<section class="py-32 bg-background relative border-y border-surface-border flex items-center justify-center overflow-hidden">
+<!-- Background Texture -->
+<div class="absolute inset-0 bg-seigaiha opacity-30"></div>
+<!-- Glow -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-full bg-primary/10 blur-[100px] pointer-events-none rounded-full"></div>
+<div class="relative z-10 text-center px-6 max-w-3xl mx-auto">
+<span class="font-accent text-primary text-3xl block mb-4">Join us tonight</span>
+<h2 class="font-headline text-5xl md:text-7xl tracking-tighter uppercase mb-8 leading-[0.9]">
+                    BOOK YOUR <br/>PERFECT EVENING
+                </h2>
+<p class="font-body text-text-muted text-lg md:text-xl mb-12 max-w-2xl mx-auto">
+                    Reserve a table for an unforgettable dining experience or check our availability for tonight.
+                </p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+<button class="w-full sm:w-auto bg-primary text-white font-headline text-xl px-10 py-4 rounded tracking-tight btn-hover-lift shadow-lg shadow-primary/20">
+                        Make a Reservation
+                    </button>
+<button class="w-full sm:w-auto bg-surface text-text-primary border border-surface-border font-headline text-xl px-10 py-4 rounded tracking-tight hover:bg-surface-border transition-colors">
+                        See Availability
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full relative bg-[#0B0B0B] border-t border-[#F4ECD8]/5">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12 px-12 py-20 max-w-7xl mx-auto">
+<!-- Brand Column -->
+<div class="space-y-6">
+<div class="font-headline text-3xl font-black text-[#F4ECD8] tracking-tighter">SUSHI GO</div>
+<p class="font-body text-[#F4ECD8]/55 text-sm leading-relaxed max-w-[250px]">
+                    Authentic Japanese cuisine in the heart of Namangan. Fresh ingredients, masterful preparation.
+                </p>
+<div class="flex gap-4 pt-2">
+<!-- Social placeholders -->
+<a class="w-10 h-10 rounded-full bg-surface border border-surface-border flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">public</span>
+</a>
+<a class="w-10 h-10 rounded-full bg-surface border border-surface-border flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">share</span>
+</a>
+</div>
+</div>
+<!-- Links Column 1 -->
+<div>
+<h4 class="font-headline text-lg tracking-tight text-white mb-6 uppercase">Explore</h4>
+<ul class="space-y-4 font-body text-[#F4ECD8] leading-relaxed text-sm">
+<li><a class="text-[#E11D2A] hover:text-[#E11D2A] underline-reveal transition-all" href="#">Menu</a></li>
+<li><a class="text-[#F4ECD8]/55 hover:text-[#E11D2A] underline-reveal transition-all" href="#">About</a></li>
+<li><a class="text-[#F4ECD8]/55 hover:text-[#E11D2A] underline-reveal transition-all" href="#">Reservations</a></li>
+<li><a class="text-[#F4ECD8]/55 hover:text-[#E11D2A] underline-reveal transition-all" href="#">Contact</a></li>
+</ul>
+</div>
+<!-- Links Column 2 -->
+<div>
+<h4 class="font-headline text-lg tracking-tight text-white mb-6 uppercase">Information</h4>
+<ul class="space-y-4 font-body text-[#F4ECD8] leading-relaxed text-sm">
+<li><a class="text-[#F4ECD8]/55 hover:text-[#E11D2A] underline-reveal transition-all" href="#">Visit Details</a></li>
+<li><a class="text-[#F4ECD8]/55 hover:text-[#E11D2A] underline-reveal transition-all" href="#">Privacy Policy</a></li>
+<li><a class="text-[#F4ECD8]/55 hover:text-[#E11D2A] underline-reveal transition-all" href="#">Terms of Service</a></li>
+<li><a class="text-[#F4ECD8]/55 hover:text-[#E11D2A] underline-reveal transition-all" href="#">My Account</a></li>
+</ul>
+</div>
+<!-- Contact/Hours -->
+<div>
+<h4 class="font-headline text-lg tracking-tight text-white mb-6 uppercase">Visit Us</h4>
+<div class="space-y-4 font-body text-sm text-text-muted">
+<p class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[18px]">location_on</span>
+<span>123 Main Street<br/>Namangan, Uzbekistan</span>
+</p>
+<p class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-[18px]">phone</span>
+<span>+998 90 123 45 67</span>
+</p>
+<p class="flex items-start gap-3 pt-2">
+<span class="material-symbols-outlined text-primary text-[18px]">schedule</span>
+<span>Mon-Sun: 11:00 - 23:00</span>
+</p>
+</div>
+</div>
+</div>
+<div class="border-t border-[#F4ECD8]/5 px-12 py-6">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="font-body text-[#F4ECD8]/55 text-xs text-center md:text-left">
+                    © 2024 Sushi GO Namangan. Authentic Japanese Excellence.
+                </p>
+<div class="text-xs text-text-muted font-body">
+                    Designed with <span class="text-primary material-symbols-outlined text-[12px] fill align-middle">favorite</span> for sushi lovers
+                </div>
+</div>
+</div>
+</footer>
+</body></html>
