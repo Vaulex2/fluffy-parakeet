@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { aboutFeatures } from "@/data/mockData";
 
 export default function AboutSection() {
@@ -16,7 +17,7 @@ export default function AboutSection() {
           <div className="absolute -inset-4 bg-background/5 -rotate-3 rounded-2xl" />
           <div className="relative aspect-square md:aspect-[4/3] rounded-xl overflow-hidden shadow-2xl">
             <Image
-              src="https://lh3.googleusercontent.com/aida/ADBb0ugFojU5pVfQvMIAVrvE_ZXBnFDTCvHKlR7WM5A-pGIIyv477_14_L22WRFZPbM6oFowWLmXBctTjZk4iWEany6qhrWWV1r__Sq7iNkhZqON1gKEzWysmB1KNjmBNtTaMX7H9J5sS68EF7kaIJ64J4Mk1UEJcxrCb8vFQ4JpZ0lYxkU3do1FvPXAZcwjDJ0mQ65LYc6bjCTBB6C3IiZZyHZhnw-z8DwO-08uJmoA1aTAvAKhGN_OJ-Jvq3Y"
+              src="https://images.unsplash.com/photo-1455279032140-49a4bf46f343?auto=format&fit=crop&w=1200&q=80"
               alt="Sushi Chef at Work"
               fill
               className="object-cover"
@@ -47,6 +48,16 @@ export default function AboutSection() {
             ensuring every slice, roll, and bowl tells a story of tradition and
             quality right here in Namangan.
           </p>
+
+          <Link
+            href="/about"
+            className="inline-flex items-center gap-2 font-headline text-light-text text-lg tracking-tight underline-reveal hover:text-primary transition-colors"
+          >
+            Learn more about us
+            <span className="material-symbols-outlined text-sm">
+              arrow_forward
+            </span>
+          </Link>
 
           <div className="grid grid-cols-2 gap-8 pt-8">
             {aboutFeatures.map((feature) => (

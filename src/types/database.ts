@@ -67,6 +67,8 @@ export interface Reservation {
   guest_name: string;
   guest_phone: string;
   guest_email: string | null;
+  manage_token: string;
+  reminder_sent_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -74,6 +76,31 @@ export interface Reservation {
 export interface ReservationWithTable extends Reservation {
   restaurant_tables: RestaurantTable | null;
 }
+
+// ── Waitlist ──────────────────────────────────────────────
+
+export type WaitlistStatus = 'waiting' | 'notified' | 'converted' | 'expired' | 'cancelled';
+
+export interface WaitlistEntry {
+  id: string;
+  guest_name: string;
+  guest_phone: string;
+  guest_email: string | null;
+  reservation_date: string;        // "YYYY-MM-DD"
+  desired_start_time: string;      // "HH:MM:SS" (TIME)
+  desired_end_time: string;        // "HH:MM:SS" (TIME)
+  guest_count: number;
+  status: WaitlistStatus;
+  manage_token: string;
+  notified_at: string | null;
+  created_at: string;
+}
+
+export type InsertWaitlistEntry = Pick<
+  WaitlistEntry,
+  'guest_name' | 'guest_phone' | 'reservation_date' |
+  'desired_start_time' | 'desired_end_time' | 'guest_count'
+> & { guest_email?: string | null };
 
 // ── Orders ────────────────────────────────────────────────
 

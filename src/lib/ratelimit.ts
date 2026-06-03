@@ -48,9 +48,10 @@ const redis = makeRedis();
 
 // Per-action limiters with appropriate windows
 const limiters = {
-  signin: makeLimiter(redis, 'signin', 5, '15 m'),  // 5 / 15 min per email
+  signin: makeLimiter(redis, 'signin', 5, '30 m'),  // 5 / 30 min per email
   signup: makeLimiter(redis, 'signup', 3, '60 m'),  // 3 / hour per email
   forgot: makeLimiter(redis, 'forgot', 3, '60 m'),  // 3 / hour per email
+  reservation: makeLimiter(redis, 'reservation', 5, '10 m'),  // 5 / 10 min per phone — booking emails arbitrary addresses
 } as const;
 
 export type RateLimitType = keyof typeof limiters;
@@ -65,8 +66,16 @@ export async function checkRateLimit(
   key: string
 ): Promise<boolean> {
   const limiter = limiters[type];
-  if (!limiter) return true; // Upstash not configured — allow (dev fallback)
 
-  const { success } = await limiter.limit(key);
+  if (!limiter) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('[ratelimit] Upstash env vars not set — cannot enforce rate limits in production.');
+    }
+    console.warn('[ratelimit] Rate limiting disabled — configure Upstash before deploying.');
+    return true;
+  }
+
+  const normalizedKey = key.toLowerCase().replace(/\+[^@]+@/, '@');
+  const { success } = await limiter.limit(normalizedKey);
   return success;
 }

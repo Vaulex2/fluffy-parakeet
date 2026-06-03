@@ -10,7 +10,7 @@ export type OrderResult =
   | { success: false; error: string };
 
 export async function createOrder(
-  order: InsertOrder & { user_id?: string | null },
+  order: InsertOrder,
   items: InsertOrderItem[]
 ): Promise<OrderResult> {
   if (!order.customer_name || !order.customer_phone || !items.length) {
@@ -35,7 +35,7 @@ export async function createOrder(
   const anonSupabase = createClient();
   const { data: menuItems, error: menuError } = await anonSupabase
     .from('menu_items')
-    .select('id, price_uzs, is_available')
+    .select('id, price, is_available')
     .in('id', itemIds);
 
   if (menuError || !menuItems) {
@@ -51,9 +51,16 @@ export async function createOrder(
     if (!dbItem.is_available) {
       return { success: false, error: 'One or more items are currently unavailable.' };
     }
-    calculatedTotal += dbItem.price_uzs * item.quantity;
+    calculatedTotal += dbItem.price * item.quantity;
   }
   // ─────────────────────────────────────────────────────────────────────────
+
+  // Resolve authenticated user server-side — never trust a caller-supplied user_id.
+  // Guests checking out without a session get a null user_id (allowed by design).
+  const {
+    data: { user },
+  } = await anonSupabase.auth.getUser();
+  const verifiedUserId = user?.id ?? null;
 
   const supabase = createAdminClient();
 
@@ -67,7 +74,7 @@ export async function createOrder(
       delivery_address: order.delivery_address ?? null,
       total_amount: calculatedTotal, // use server-calculated total
       notes: order.notes ?? null,
-      user_id: order.user_id ?? null,
+      user_id: verifiedUserId, // server-verified session id, never caller-supplied
     })
     .select('id')
     .single();

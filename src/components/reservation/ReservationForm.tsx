@@ -2,10 +2,16 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { getAvailableTables, createReservation } from "@/lib/actions/reservations";
+import {
+  getAvailability,
+  getAlternativeSlots,
+  createReservation,
+  joinWaitlist,
+  type AlternativeSlot,
+} from "@/lib/actions/reservations";
 import type { RestaurantTable } from "@/types/database";
 
-type Step = "datetime" | "tables" | "contact" | "confirmed";
+type Step = "datetime" | "tables" | "contact" | "confirmed" | "waitlist" | "waitlisted";
 
 // Generates half-hour slots from 11:00 to 21:30 (last booking start)
 function generateTimeSlots() {
@@ -17,19 +23,35 @@ function generateTimeSlots() {
   return slots;
 }
 
-const TIME_SLOTS = generateTimeSlots();
-const DURATIONS = [
+export const TIME_SLOTS = generateTimeSlots();
+export const DURATIONS = [
   { label: "1 hour", minutes: 60 },
   { label: "1.5 hours", minutes: 90 },
   { label: "2 hours", minutes: 120 },
 ];
+export const MAX_GUESTS = 20;
 
-function addMinutesToTime(time: string, minutes: number): string {
+export function addMinutesToTime(time: string, minutes: number): string {
   const [h, m] = time.split(":").map(Number);
   const total = h * 60 + m + minutes;
   const newH = Math.floor(total / 60) % 24;
   const newM = total % 60;
   return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}:00`;
+}
+
+export function formatTime12(t: string): string {
+  const [h, m] = t.split(":").map(Number);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
+export function isSlotPast(slot: string, selectedDate: string): boolean {
+  const localToday = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD in local timezone
+  if (selectedDate !== localToday) return false;
+  const [h, m] = slot.split(":").map(Number);
+  const now = new Date();
+  return h * 60 + m <= now.getHours() * 60 + now.getMinutes();
 }
 
 export default function ReservationForm() {
@@ -39,6 +61,8 @@ export default function ReservationForm() {
   const [durationMinutes, setDurationMinutes] = useState(90);
   const [guestCount, setGuestCount] = useState(2);
   const [availableTables, setAvailableTables] = useState<RestaurantTable[]>([]);
+  const [totalMatching, setTotalMatching] = useState(0);
+  const [altSlots, setAltSlots] = useState<AlternativeSlot[]>([]);
   const [selectedTable, setSelectedTable] = useState<RestaurantTable | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -46,10 +70,16 @@ export default function ReservationForm() {
   const [userId, setUserId] = useState<string | null>(null);
   const [specialRequests, setSpecialRequests] = useState("");
   const [confirmedId, setConfirmedId] = useState<string | null>(null);
+  const [confirmedToken, setConfirmedToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const today = new Date().toISOString().split("T")[0];
+
+  // Clear selected time if it's now in the past (e.g. date changed to today)
+  useEffect(() => {
+    if (time && isSlotPast(time, date)) setTime("");
+  }, [date, time]);
 
   // Pre-fill from auth user on mount
   useEffect(() => {
@@ -80,10 +110,35 @@ export default function ReservationForm() {
     const startTime = time + ":00";
     const endTime = addMinutesToTime(time, durationMinutes);
     startTransition(async () => {
-      const tables = await getAvailableTables(date, startTime, endTime, guestCount);
-      setAvailableTables(tables);
+      const info = await getAvailability(date, startTime, endTime, guestCount);
+      setAvailableTables(info.tables);
+      setTotalMatching(info.totalMatching);
       setSelectedTable(null);
+      // When the slot is full, fetch nearby openings to suggest.
+      setAltSlots(info.tables.length === 0
+        ? await getAlternativeSlots(date, time, durationMinutes, guestCount)
+        : []);
       setStep("tables");
+    });
+  }
+
+  function handleJoinWaitlist() {
+    if (!name || !phone) return;
+    setError(null);
+    startTransition(async () => {
+      const res = await joinWaitlist({
+        guest_name: name,
+        guest_phone: phone,
+        guest_email: email || null,
+        reservation_date: date,
+        desired_start_time: time + ":00",
+        desired_end_time: addMinutesToTime(time, durationMinutes),
+        guest_count: guestCount,
+      });
+      if (res.success) setStep("waitlisted");
+      else if (res.error === "rate_limited")
+        setError("Too many attempts. Please wait a few minutes and try again.");
+      else setError("Could not join the waitlist. Please try again.");
     });
   }
 
@@ -106,6 +161,7 @@ export default function ReservationForm() {
 
       if (result.success) {
         setConfirmedId(result.id);
+        setConfirmedToken(result.manageToken);
         setStep("confirmed");
       } else if (result.error === "slot_taken") {
         setError("This slot was just booked by someone else. Please go back and choose another time.");
@@ -114,13 +170,6 @@ export default function ReservationForm() {
       }
     });
   }
-
-  const formatTime12 = (t: string) => {
-    const [h, m] = t.split(":").map(Number);
-    const ampm = h >= 12 ? "PM" : "AM";
-    const h12 = h % 12 || 12;
-    return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
-  };
 
   // ── Step: Confirmed ───────────────────────────────────────
   if (step === "confirmed") {
@@ -144,17 +193,29 @@ export default function ReservationForm() {
           <Detail label="Guests" value={`${guestCount} ${guestCount === 1 ? "person" : "people"}`} />
           <Detail label="Table" value={`Table ${selectedTable?.table_number} (capacity ${selectedTable?.seat_count})`} />
         </div>
-        <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
+        {email && (
+          <p className="text-text-muted font-body text-sm">
+            We&apos;ve emailed your confirmation to{" "}
+            <span className="text-text-primary">{email}</span>.
+          </p>
+        )}
+        <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 space-y-3">
           <p className="font-body text-sm text-text-primary leading-relaxed">
             <span className="font-semibold">Need to modify or cancel?</span><br />
-            Reservations can only be changed by calling us directly:
+            Manage your booking anytime — no account needed.
           </p>
-          <a
-            href="tel:+998901234567"
-            className="mt-2 inline-block text-primary font-headline text-2xl tracking-tight"
-          >
-            +998 90 123 45 67
-          </a>
+          {confirmedToken && (
+            <a
+              href={`/reservations/manage/${confirmedToken}`}
+              className="inline-block bg-primary text-white font-headline tracking-tight text-base px-6 py-2.5 rounded-xl hover:bg-red-700 transition-colors"
+            >
+              Manage reservation
+            </a>
+          )}
+          <p className="font-body text-xs text-text-muted">
+            Or call us:{" "}
+            <a href="tel:+998901234567" className="text-primary">+998 90 123 45 67</a>
+          </p>
         </div>
       </div>
     );
@@ -172,19 +233,25 @@ export default function ReservationForm() {
 
         <Field label="Time">
           <div className="grid grid-cols-4 gap-2">
-            {TIME_SLOTS.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTime(t)}
-                className={`py-2 rounded-lg font-body text-sm border transition-colors ${
-                  time === t
-                    ? "bg-primary border-primary text-white"
-                    : "border-surface-border text-text-muted hover:border-primary/60"
-                }`}
-              >
-                {formatTime12(t)}
-              </button>
-            ))}
+            {TIME_SLOTS.map((t) => {
+              const past = isSlotPast(t, date);
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTime(t)}
+                  disabled={past}
+                  className={`py-2 rounded-lg font-body text-sm border transition-colors ${
+                    time === t
+                      ? "bg-primary border-primary text-white"
+                      : past
+                      ? "border-surface-border text-text-muted/25 cursor-not-allowed line-through"
+                      : "border-surface-border text-text-muted hover:border-primary/60"
+                  }`}
+                >
+                  {formatTime12(t)}
+                </button>
+              );
+            })}
           </div>
         </Field>
 
@@ -218,7 +285,7 @@ export default function ReservationForm() {
               {guestCount}
             </span>
             <button
-              onClick={() => setGuestCount(Math.min(16, guestCount + 1))}
+              onClick={() => setGuestCount(Math.min(MAX_GUESTS, guestCount + 1))}
               className="w-10 h-10 rounded-full border border-surface-border flex items-center justify-center text-text-muted hover:border-primary hover:text-primary transition-colors text-xl"
             >
               +
@@ -257,18 +324,56 @@ export default function ReservationForm() {
         </div>
 
         {availableTables.length === 0 ? (
-          <div className="text-center py-10 text-text-muted font-body">
-            <span className="material-symbols-outlined text-4xl mb-3 block opacity-40">event_busy</span>
-            <p>No tables available for this slot.</p>
+          <div className="text-center py-8 text-text-muted font-body space-y-5">
+            <div>
+              <span className="material-symbols-outlined text-4xl mb-3 block opacity-40">event_busy</span>
+              <p>No tables available for this slot.</p>
+            </div>
+
+            {altSlots.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-widest">Nearby openings</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {altSlots.map((slot) => (
+                    <button
+                      key={slot.time}
+                      onClick={() => { setTime(slot.time); handleDateTimeNext(); }}
+                      className="px-4 py-2 rounded-lg border border-primary/50 text-primary font-body text-sm hover:bg-primary/10 transition-colors"
+                    >
+                      {formatTime12(slot.time)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="bg-surface border border-surface-border rounded-xl p-4 space-y-3">
+              <p className="text-sm text-text-primary">
+                Want this exact time? Join the waitlist and we&apos;ll email you if a table frees up.
+              </p>
+              <button
+                onClick={() => setStep("waitlist")}
+                className="bg-primary text-white font-headline tracking-tight text-base px-6 py-2.5 rounded-xl hover:bg-red-700 transition-colors"
+              >
+                Join the waitlist →
+              </button>
+            </div>
+
             <button
               onClick={() => setStep("datetime")}
-              className="mt-4 text-primary hover:underline text-sm"
+              className="text-primary hover:underline text-sm"
             >
-              Try a different time
+              Or try a different time
             </button>
           </div>
         ) : (
           <div className="grid gap-3">
+            {totalMatching > 0 && availableTables.length <= 2 && (
+              <p className="text-amber-400 font-body text-sm flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-base">local_fire_department</span>
+                Almost full — only {availableTables.length} {availableTables.length === 1 ? "table" : "tables"} left at this time.
+              </p>
+            )}
             {availableTables.map((table) => (
               <button
                 key={table.id}
@@ -298,13 +403,100 @@ export default function ReservationForm() {
           </div>
         )}
 
+        {availableTables.length > 0 && (
+          <button
+            onClick={() => setStep("contact")}
+            disabled={!selectedTable}
+            className="w-full bg-primary text-white font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Continue →
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // ── Step: Waitlist (contact details) ──────────────────────
+  if (step === "waitlist") {
+    return (
+      <div className="max-w-lg mx-auto space-y-6">
         <button
-          onClick={() => setStep("contact")}
-          disabled={!selectedTable}
+          onClick={() => setStep("tables")}
+          className="text-text-muted hover:text-text-primary font-body text-sm flex items-center gap-1 transition-colors"
+        >
+          <span className="material-symbols-outlined text-base">arrow_back</span> Back
+        </button>
+        <div>
+          <h2 className="font-headline text-3xl tracking-tight text-text-primary mb-2">Join the Waitlist</h2>
+          <p className="text-text-muted font-body text-sm">
+            {date} · {formatTime12(time)} · {guestCount} {guestCount === 1 ? "guest" : "guests"}. We&apos;ll email you the moment a table opens.
+          </p>
+        </div>
+
+        <Field label="Full Name *">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name"
+            className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
+          />
+        </Field>
+        <Field label="Phone *">
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+998 90 000 00 00"
+            className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
+          />
+        </Field>
+        <Field label="Email (to be notified)">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
+          />
+        </Field>
+
+        {error && (
+          <p className="text-primary text-sm font-body bg-primary/10 border border-primary/20 rounded-lg px-4 py-3">
+            {error}
+          </p>
+        )}
+
+        <button
+          onClick={handleJoinWaitlist}
+          disabled={!name || !phone || isPending}
           className="w-full bg-primary text-white font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Continue →
+          {isPending ? "Joining…" : "Join Waitlist"}
         </button>
+      </div>
+    );
+  }
+
+  // ── Step: Waitlisted ──────────────────────────────────────
+  if (step === "waitlisted") {
+    return (
+      <div className="max-w-lg mx-auto text-center space-y-6">
+        <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center mx-auto">
+          <span className="material-symbols-outlined text-amber-400 text-3xl">hourglass_top</span>
+        </div>
+        <div>
+          <h2 className="font-headline text-3xl tracking-tight text-text-primary mb-2">You&apos;re on the waitlist</h2>
+          <p className="text-text-muted font-body text-sm">
+            If a table opens for {date} at {formatTime12(time)}, we&apos;ll email{email ? ` ${email}` : " you"} right away.
+          </p>
+        </div>
+        <a
+          href="/reservations"
+          className="inline-block border border-surface-border text-text-primary font-headline tracking-tight text-base px-6 py-2.5 rounded-xl hover:border-primary transition-colors"
+        >
+          Book a different time
+        </a>
       </div>
     );
   }
@@ -372,8 +564,7 @@ export default function ReservationForm() {
       </button>
 
       <p className="text-text-muted font-body text-xs text-center">
-        Reservations can only be cancelled by calling us at{" "}
-        <a href="tel:+998901234567" className="text-primary">+998 90 123 45 67</a>
+        Add your email to get a confirmation with a link to manage or cancel your booking.
       </p>
     </div>
   );
@@ -384,7 +575,7 @@ export default function ReservationForm() {
 const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-function CalendarPicker({ value, min, onChange }: { value: string; min: string; onChange: (v: string) => void }) {
+export function CalendarPicker({ value, min, onChange }: { value: string; min: string; onChange: (v: string) => void }) {
   const today = new Date(min + "T00:00:00");
   const initYear = value ? Number(value.slice(0, 4)) : today.getFullYear();
   const initMonth = value ? Number(value.slice(5, 7)) - 1 : today.getMonth();
@@ -510,7 +701,7 @@ function StepHeader({ step, total, title }: { step: number; total: number; title
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
       <label className="block text-text-muted text-xs font-body font-medium uppercase tracking-widest">

@@ -1,21 +1,68 @@
 import { redirect } from "next/navigation";
 import Image from "next/image";
-import { getUser, getProfile } from "@/lib/actions/auth";
-import { getMyReservations } from "@/lib/actions/customer/reservations";
+import { getUser, getProfile, signOut } from "@/lib/actions/auth";
+import { getMyReservations, getUpcomingReservations } from "@/lib/actions/customer/reservations";
+import type { ReservationWithTable } from "@/types/database";
 import ProfileEditForm from "@/components/profile/ProfileEditForm";
 import CustomerReservations from "@/components/profile/CustomerReservations";
+import LoyaltyCard, { TierChip } from "@/components/profile/LoyaltyCard";
+import ProfileStats from "@/components/profile/ProfileStats";
 
-function LoyaltyBadge({ points }: { points: number }) {
-  const tier =
-    points >= 5000 ? { label: "Gold", cls: "text-amber-400 bg-amber-500/15 border-amber-500/30" }
-    : points >= 1000 ? { label: "Silver", cls: "text-slate-300 bg-slate-500/15 border-slate-400/30" }
-    : { label: "Bronze", cls: "text-orange-400 bg-orange-500/15 border-orange-500/30" };
+function fmtTime(time: string) {
+  const [h, m] = time.split(":").map(Number);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+}
 
+function fmtLongDate(date: string) {
+  return new Date(date + "T00:00:00").toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+/** Relative day label: "Today" / "Tomorrow" / "in N days". */
+function countdown(date: string) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(date + "T00:00:00");
+  const days = Math.round((target.getTime() - today.getTime()) / 86_400_000);
+  if (days <= 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  return `in ${days} days`;
+}
+
+function NextReservation({ r }: { r: ReservationWithTable }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border font-body text-xs font-medium ${tier.cls}`}>
-      <span className="material-symbols-outlined text-[14px]">star</span>
-      {tier.label} · {points.toLocaleString()} pts
-    </span>
+    <section className="relative overflow-hidden rounded-2xl border border-primary/30 bg-surface p-6">
+      <div className="absolute -top-16 -right-16 w-56 h-56 bg-primary/20 rounded-full blur-[90px] pointer-events-none mix-blend-screen" />
+      <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+        <div>
+          <p className="text-primary font-body text-xs uppercase tracking-widest mb-2">
+            Next reservation · {countdown(r.reservation_date)}
+          </p>
+          <p className="font-headline text-2xl tracking-tight text-text-primary">
+            {fmtLongDate(r.reservation_date)}
+          </p>
+          <p className="font-body text-sm text-text-muted mt-1">
+            {fmtTime(r.start_time)} – {fmtTime(r.end_time)} ·{" "}
+            {r.restaurant_tables
+              ? `Table ${r.restaurant_tables.table_number} (${r.restaurant_tables.seat_count} seats)`
+              : "Table TBD"}{" "}
+            · {r.guest_count} guests
+          </p>
+        </div>
+        <a
+          href={`/reservations/manage/${r.manage_token}`}
+          className="shrink-0 inline-flex items-center justify-center gap-1.5 bg-primary text-white font-headline tracking-tight px-5 py-2.5 rounded-xl hover:bg-red-700 transition-colors"
+        >
+          <span className="material-symbols-outlined text-[18px]">edit_calendar</span>
+          Manage
+        </a>
+      </div>
+    </section>
   );
 }
 
@@ -28,14 +75,20 @@ export default async function ProfilePage({
   if (!user) redirect("/auth/login?next=/profile");
 
   const page = Math.max(1, parseInt(searchParams.page ?? "1", 10));
-  const [profile, { reservations, totalPages }] = await Promise.all([
+  const [profile, { reservations, totalPages, total }, upcoming] = await Promise.all([
     getProfile(),
     getMyReservations(page),
+    getUpcomingReservations(),
   ]);
   if (!profile) redirect("/auth/login");
 
+  const memberSince = new Date(profile.created_at).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12 space-y-10">
+    <div className="max-w-4xl mx-auto px-4 py-12 space-y-8">
       {/* Suspension notice */}
       {profile.is_suspended && (
         <div className="flex items-start gap-3 bg-primary/10 border border-primary/30 rounded-xl px-5 py-4">
@@ -49,33 +102,53 @@ export default async function ProfilePage({
         </div>
       )}
 
-      {/* Profile Header */}
-      <div className="flex items-center gap-5">
-        {profile.avatar_url ? (
-          <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-primary/30 shrink-0">
-            <Image src={profile.avatar_url} alt="Avatar" fill className="object-cover" />
+      {/* Hero identity card */}
+      <section className="relative overflow-hidden rounded-2xl border border-surface-border bg-surface bg-seigaiha p-6 sm:p-8">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-primary/20 rounded-full blur-[110px] pointer-events-none mix-blend-screen" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center gap-5">
+          {profile.avatar_url ? (
+            <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary/30 shrink-0">
+              <Image src={profile.avatar_url} alt="Avatar" fill className="object-cover" />
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-primary text-4xl">person</span>
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h1 className="font-headline text-3xl tracking-tight text-text-primary">
+              {profile.full_name ?? "My Account"}
+            </h1>
+            <p className="font-body text-sm text-text-muted mt-0.5 truncate">{user.email}</p>
+            <p className="font-body text-xs text-text-muted/70 mt-0.5">Member since {memberSince}</p>
+            <div className="mt-3">
+              <TierChip points={profile.loyalty_points} />
+            </div>
           </div>
-        ) : (
-          <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-primary text-3xl">person</span>
-          </div>
-        )}
-        <div>
-          <h1 className="font-headline text-2xl tracking-tight text-text-primary">
-            {profile.full_name ?? "My Account"}
-          </h1>
-          <p className="font-body text-sm text-text-muted mt-0.5">{user.email}</p>
-          <div className="mt-2">
-            <LoyaltyBadge points={profile.loyalty_points} />
-          </div>
+          <form action={signOut} className="shrink-0">
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-surface-border text-text-muted font-body text-sm hover:text-text-primary hover:border-primary/40 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[18px]">logout</span>
+              Sign out
+            </button>
+          </form>
         </div>
+      </section>
+
+      {/* Rewards + Stats */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <LoyaltyCard points={profile.loyalty_points} />
+        <ProfileStats
+          points={profile.loyalty_points}
+          upcomingCount={upcoming.length}
+          totalBookings={total}
+        />
       </div>
 
-      {/* Edit Form */}
-      <section className="bg-surface border border-surface-border rounded-2xl p-6 space-y-5">
-        <h2 className="font-headline text-lg tracking-tight text-text-primary">Edit Profile</h2>
-        <ProfileEditForm profile={profile} />
-      </section>
+      {/* Next reservation highlight */}
+      {upcoming[0] && <NextReservation r={upcoming[0]} />}
 
       {/* Reservations */}
       <section className="space-y-4">
@@ -89,10 +162,26 @@ export default async function ProfilePage({
           </a>
         </div>
         <CustomerReservations
+          upcoming={upcoming}
           reservations={reservations}
           totalPages={totalPages}
           page={page}
         />
+      </section>
+
+      {/* Account settings */}
+      <section className="bg-surface border border-surface-border rounded-2xl overflow-hidden">
+        <details className="group">
+          <summary className="flex items-center justify-between cursor-pointer list-none px-6 py-5">
+            <h2 className="font-headline text-lg tracking-tight text-text-primary">Account Settings</h2>
+            <span className="material-symbols-outlined text-text-muted transition-transform group-open:rotate-180">
+              expand_more
+            </span>
+          </summary>
+          <div className="px-6 pb-6">
+            <ProfileEditForm profile={profile} />
+          </div>
+        </details>
       </section>
     </div>
   );

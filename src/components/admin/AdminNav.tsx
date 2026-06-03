@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import { signOut } from "@/lib/actions/auth";
 
 const NAV = [
@@ -15,6 +17,15 @@ const NAV = [
 
 export default function AdminNav({ userEmail }: { userEmail: string }) {
   const pathname = usePathname();
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReduceMotion(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   return (
     <nav className="fixed left-0 top-0 z-40 w-64 h-screen bg-[#0f0f0f] border-r border-surface-border flex flex-col">
@@ -31,14 +42,26 @@ export default function AdminNav({ userEmail }: { userEmail: string }) {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-body text-sm transition-colors border-l-2 ${
+              className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg font-body text-sm transition-colors ${
                 active
-                  ? "bg-primary/10 text-primary border-primary"
-                  : "text-text-muted hover:text-text-primary hover:bg-surface border-transparent"
+                  ? "text-primary"
+                  : "text-text-muted hover:text-text-primary hover:bg-surface"
               }`}
             >
-              <span className="material-symbols-outlined text-[18px]">{icon}</span>
-              {label}
+              {active &&
+                (reduceMotion ? (
+                  <span className="absolute inset-0 rounded-lg border-l-2 border-primary bg-primary/10" />
+                ) : (
+                  <motion.span
+                    layoutId="admin-nav-active"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="absolute inset-0 rounded-lg border-l-2 border-primary bg-primary/10"
+                  />
+                ))}
+              <span className="material-symbols-outlined text-[18px] relative z-10">
+                {icon}
+              </span>
+              <span className="relative z-10">{label}</span>
             </Link>
           );
         })}

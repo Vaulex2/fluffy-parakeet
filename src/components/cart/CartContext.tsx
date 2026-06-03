@@ -21,7 +21,7 @@ interface CartContextValue {
   items: CartItem[];
   count: number;
   total: number;
-  addItem: (item: Omit<CartItem, "quantity">) => void;
+  addItem: (item: Omit<CartItem, "quantity">, opts?: { openDrawer?: boolean }) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -51,18 +51,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const addItem = useCallback((item: Omit<CartItem, "quantity">) => {
-    setItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-        );
-      }
-      return [...prev, { ...item, quantity: 1 }];
-    });
-    setIsOpen(true);
-  }, []);
+  const addItem = useCallback(
+    (item: Omit<CartItem, "quantity">, opts?: { openDrawer?: boolean }) => {
+      setItems((prev) => {
+        const existing = prev.find((i) => i.id === item.id);
+        if (existing) {
+          return prev.map((i) =>
+            i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+          );
+        }
+        return [...prev, { ...item, quantity: 1 }];
+      });
+      // Default keeps the drawer auto-opening (all existing call sites); the menu
+      // add button opts out so the fly-to-cart animation is the feedback instead.
+      if (opts?.openDrawer ?? true) setIsOpen(true);
+    },
+    []
+  );
 
   const removeItem = useCallback((id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id));

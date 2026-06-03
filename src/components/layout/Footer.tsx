@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { footerExplore, footerInfo } from "@/data/mockData";
+import CookiePreferencesLink from "@/components/cookies/CookiePreferencesLink";
 
 export default function Footer() {
   return (
@@ -69,6 +70,9 @@ export default function Footer() {
                 </Link>
               </li>
             ))}
+            <li>
+              <CookiePreferencesLink className="text-text-muted underline-reveal transition-colors hover:text-primary text-left" />
+            </li>
           </ul>
         </div>
 

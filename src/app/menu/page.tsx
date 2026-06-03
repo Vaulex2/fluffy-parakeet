@@ -19,8 +19,11 @@ export default async function MenuPage() {
       <Suspense fallback={<NavbarSkeleton />}>
         <Navbar />
       </Suspense>
-      <main className="relative pt-[72px] pb-20 overflow-hidden bg-background bg-seigaiha min-h-screen">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen z-0" />
+      <main className="relative pt-[72px] pb-20 bg-background bg-seigaiha min-h-screen">
+        {/* overflow-hidden scoped to the glow blob so sticky bar works */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px] mix-blend-screen" />
+        </div>
 
         <section className="relative z-10 max-w-7xl mx-auto px-6 py-16">
           <MenuHero />

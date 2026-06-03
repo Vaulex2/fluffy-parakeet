@@ -105,7 +105,7 @@ export default function ReservationsClient({
                   </tr>
                 ) : (
                   filtered.map((r) => (
-                    <tr key={r.id} className="hover:bg-surface/50 transition-colors">
+                    <tr key={r.id}>
                       <td className="px-5 py-3 text-text-primary whitespace-nowrap">{r.guest_name}</td>
                       <td className="px-5 py-3">
                         <a href={`tel:${r.guest_phone}`} className="text-primary hover:underline whitespace-nowrap">

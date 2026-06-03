@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireAdmin } from './_guard';
+import { notifyWaitlistForSlot } from '@/lib/actions/reservations';
 import type { ReservationStatus, ReservationWithTable } from '@/types/database';
 
 export async function getReservations(filters?: {
@@ -35,10 +36,10 @@ export async function updateReservationStatus(
   const { userId: actorId } = await requireAdmin();
   const supabase = createAdminClient();
 
-  // Fetch previous status for audit
+  // Fetch previous status + slot for audit and waitlist notification
   const { data: prev } = await supabase
     .from('reservations')
-    .select('status')
+    .select('status, reservation_date, start_time, end_time')
     .eq('id', id)
     .single();
 
@@ -56,6 +57,11 @@ export async function updateReservationStatus(
     target_id: id,
     payload: { from: prev?.status ?? null, to: status },
   });
+
+  // Cancelling / no-show frees the table — offer it to anyone on the waitlist.
+  if ((status === 'cancelled' || status === 'no_show') && prev) {
+    await notifyWaitlistForSlot(prev.reservation_date, prev.start_time, prev.end_time);
+  }
 }
 
 export async function rescheduleReservation(

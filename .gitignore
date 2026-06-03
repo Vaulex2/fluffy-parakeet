@@ -36,3 +36,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local agent / Claude tooling — not part of the app
+.agents/
+.claude/
+skills-lock.json
+.planning/

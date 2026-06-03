@@ -16,7 +16,6 @@ export default function ReservationsPage() {
         <Navbar />
       </Suspense>
       <main className="flex-grow pt-[72px] bg-background bg-seigaiha relative">
-        {/* Radial glow matching home page */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
         <section className="py-16 px-4 relative z-10">
           <div className="max-w-2xl mx-auto">

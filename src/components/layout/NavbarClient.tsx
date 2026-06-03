@@ -1,11 +1,59 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { signOut } from "@/lib/actions/auth";
 import { navLinks } from "@/data/mockData";
+import NavHeader from "@/components/ui/nav-header";
+import { useCart } from "@/components/cart/CartContext";
+import { EXPO } from "@/components/ui/Reveal";
 import type { Profile } from "@/types/database";
 import type { User } from "@supabase/supabase-js";
+
+// Cart icon with a live count badge that "pops" when an item lands (fly-to-cart
+// dispatches "sushigo:cart-pop"). Doubles as the fly target via #cart-fly-target.
+function CartButton() {
+  const { count } = useCart();
+  const [pop, setPop] = useState(0);
+
+  useEffect(() => {
+    const handler = () => setPop((p) => p + 1);
+    window.addEventListener("sushigo:cart-pop", handler);
+    return () => window.removeEventListener("sushigo:cart-pop", handler);
+  }, []);
+
+  return (
+    <Link
+      href="/menu"
+      id="cart-fly-target"
+      aria-label={`Cart${count > 0 ? `, ${count} item${count === 1 ? "" : "s"}` : ""}`}
+      className="text-text-primary hover:text-primary transition-colors relative hover:-translate-y-0.5 hover:transition-transform duration-300"
+    >
+      <motion.span
+        key={pop}
+        animate={pop ? { scale: [1, 1.35, 1] } : undefined}
+        transition={{ duration: 0.45, ease: EXPO }}
+        className="material-symbols-outlined block"
+      >
+        shopping_cart
+      </motion.span>
+      {count > 0 ? (
+        <motion.span
+          key={`badge-${pop}`}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.3, ease: EXPO }}
+          className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 bg-primary text-white text-[10px] font-body font-bold rounded-full flex items-center justify-center leading-none"
+        >
+          {count}
+        </motion.span>
+      ) : (
+        <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
+      )}
+    </Link>
+  );
+}
 
 interface NavbarClientProps {
   user: User | null;
@@ -45,31 +93,13 @@ export default function NavbarClient({ user, profile }: NavbarClientProps) {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-8 font-body font-light">
-          {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className={`transition-colors duration-300 hover:-translate-y-0.5 hover:text-primary ${
-                link.active
-                  ? "text-primary border-b-2 border-primary pb-1"
-                  : "text-text-primary hover:text-primary"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+        <nav className="hidden md:block">
+          <NavHeader links={navLinks} />
         </nav>
 
         {/* Actions */}
         <div className="flex items-center gap-4 md:gap-6">
-          <Link
-            href="/menu"
-            className="text-text-primary hover:text-primary transition-colors relative hover:-translate-y-0.5 hover:transition-transform duration-300"
-          >
-            <span className="material-symbols-outlined">shopping_cart</span>
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
-          </Link>
+          <CartButton />
 
           {user ? (
             /* Authenticated: avatar + dropdown */
@@ -79,18 +109,24 @@ export default function NavbarClient({ user, profile }: NavbarClientProps) {
                 className="flex items-center gap-2 group"
                 aria-expanded={dropdownOpen}
               >
-                {profile?.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profile.avatar_url}
-                    alt="avatar"
-                    className="w-8 h-8 rounded-full object-cover border border-primary/30"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-primary text-[18px]">person</span>
-                  </div>
-                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={profile?.avatar_url ?? ''}
+                  alt="avatar"
+                  className="w-8 h-8 rounded-full object-cover border border-primary/30"
+                  style={{ display: profile?.avatar_url ? 'block' : 'none' }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div
+                  className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 items-center justify-center"
+                  style={{ display: profile?.avatar_url ? 'none' : 'flex' }}
+                >
+                  <span className="material-symbols-outlined text-primary text-[18px]">person</span>
+                </div>
                 {profile && <LoyaltyChip points={profile.loyalty_points} />}
                 <span className="material-symbols-outlined text-text-muted text-[16px]">
                   {dropdownOpen ? "expand_less" : "expand_more"}

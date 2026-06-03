@@ -3,6 +3,7 @@ export interface MenuItem {
   name: string;
   price: string;
   image: string;
+  description?: string;
   badge?: string;
   badgeDark?: boolean;
   staggered?: boolean;
@@ -19,6 +20,14 @@ export interface AboutFeature {
   description: string;
 }
 
+export interface AboutMilestone {
+  year: string;
+  title: string;
+  description: string;
+  image: string;
+  imageAlt: string;
+}
+
 export interface NavLink {
   label: string;
   href: string;
@@ -31,7 +40,8 @@ export const featuredDishes: MenuItem[] = [
     name: 'Dragon Roll',
     price: '120,000 UZS',
     image:
-      'https://lh3.googleusercontent.com/aida/ADBb0uijkyg1Z6KWD_N5aIBQGMc6RMorexpNshiJVdLqo6J92AVUa9NTxDTeYJej7fR5uQixi9qBajPd5-4OJVmT1EtW7mW6VQEr9SqsvzHk8QCJ3tvC2WEPpuGf8sLvulaPqw-9i_WtOlqN3gH3ZugEdGu1PC-h3DcsZU7ewCl12Ch-cxvJhImynzIGPxE9f7Md89IRoDQPlTYjKMXaoPEadKGQSGMPJfWnVMAqRb2Y0pvckJyuBX9TkqVkVuFL',
+      'https://images.unsplash.com/photo-1713453018516-b08018818c0c?auto=format&fit=crop&w=800&q=80',
+    description: 'Premium eel, ripe avocado & cucumber under a glossy unagi glaze.',
     badge: 'Popular',
     staggered: false,
   },
@@ -40,7 +50,8 @@ export const featuredDishes: MenuItem[] = [
     name: 'Salmon Nigiri',
     price: '60,000 UZS',
     image:
-      'https://lh3.googleusercontent.com/aida/ADBb0ug5v3l6jX6XmiHkS95ThSsVSzNWNufTWwYXJQ0LG3VAb3xOcZNUKfVCXiwz0SWRcpWMestTv_JYJiAiXRsJldVNS_rX4abb_OZqIAmCWC8nIlkmpub6Ie_KYkd-0U9km8H-JkIYtfoHzBDhiInqu9XnuHV7C0BJnIfn7G6TfASCkpRkxzscPfJTy47Or6JyBn8hXbMQt1GV7x4F_40u9Jn_9ykb6YeSx_rCfpXSo35_P20zGAQV2JAzDzCF',
+      'https://images.unsplash.com/photo-1657895116421-c1c9596d8dd2?auto=format&fit=crop&w=800&q=80',
+    description: 'Hand-pressed vinegared rice crowned with fresh Atlantic salmon.',
     staggered: true,
   },
   {
@@ -48,7 +59,8 @@ export const featuredDishes: MenuItem[] = [
     name: 'Tonkotsu Ramen',
     price: '85,000 UZS',
     image:
-      'https://lh3.googleusercontent.com/aida/ADBb0uiQnQ8vkdWjZc7uPGTUY7ukrUe6dhq47q0-QdfPmveIBejjw_fyartPYkRF11l5udtKMCxmx_1Y81r2TcxBiASRTVv1DiOjixH5-BHX8CzHKQBwRUKYR8ADpdaNH199EIewJGI6N5pBTqhGZm23VHd0AhS4O6H9rFsA3kBkABf-eGCLIC0ojmnBigDa0f3EMey7Q2L-zz17XHfqOKip2ujuK_EIxWRuGqZ1Yl8uD5busnJUHJGB_1dPYsw',
+      'https://images.unsplash.com/photo-1635379511574-bc167ca085c8?auto=format&fit=crop&w=800&q=80',
+    description: '12-hour pork broth, melt-in-mouth chashu & a jammy soft egg.',
     badge: 'New',
     badgeDark: true,
     staggered: false,
@@ -58,7 +70,8 @@ export const featuredDishes: MenuItem[] = [
     name: 'Rainbow Roll',
     price: '110,000 UZS',
     image:
-      'https://lh3.googleusercontent.com/aida/ADBb0ujjI5dibVius1-fdiLTzxsUusq7_lq987nGUnYw8axAg6BeI_Qs0AI9Q6cPjPMYz4czKS7hCdn-00NfUPF_CD9MRI5TaGn3wKWWL2upNLGndC5mdmeZoDZZWdwHhHRBou71Cf5B9kHgpVA9wvRzx9Yp8yDR9pJW5MZfRik735lNFUPhgca-2TGgB95rdNopAS5sandwFYY2-SrUV8XRGXzZ51lbQ6yMpdVDrVa6y6KXShoE0dlKa-Ks84wj',
+      'https://images.unsplash.com/photo-1546530785-86397501ae20?auto=format&fit=crop&w=800&q=80',
+    description: 'A California core wrapped in a ribbon of assorted fresh fish.',
     staggered: true,
   },
 ];
@@ -76,24 +89,58 @@ export const aboutFeatures: AboutFeature[] = [
   { icon: 'delivery_dining', title: 'Fast Delivery', description: 'Hot and fresh straight to your doorstep.' },
 ];
 
+export const aboutMilestones: AboutMilestone[] = [
+  {
+    year: '2019',
+    title: 'Born in Namangan',
+    description:
+      'SushiGO opened its doors with a single idea — bring modern Japanese dining to the heart of Namangan, where authentic taste and a warm welcome meet.',
+    image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=900&q=80',
+    imageAlt: 'Sushi chef at work — the first day SushiGO opened',
+  },
+  {
+    year: '2021',
+    title: 'A Tokyo-inspired space',
+    description:
+      'We reimagined our room around contemporary Tokyo interiors — soft lighting, natural wood textures and an open, immersive space that balances elegance and comfort.',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80',
+    imageAlt: 'The redesigned SushiGO dining room with wood accents and warm lighting',
+  },
+  {
+    year: '2023',
+    title: 'Chef Sato’s craft',
+    description:
+      'Head chef Kenji Sato brought a reverence for tradition and a modern eye to the kitchen, shaping a menu of signature creations from the first slice to the final garnish.',
+    image: 'https://images.unsplash.com/photo-1553621042-f6e147245754?auto=format&fit=crop&w=900&q=80',
+    imageAlt: 'Chef Sato plating a signature sushi creation',
+  },
+  {
+    year: 'Today',
+    title: 'Where taste meets atmosphere',
+    description:
+      'Whether it’s a casual dinner or a special occasion, SushiGO is a place where authentic taste, creativity and atmosphere come together — designed to make every visit memorable.',
+    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=80',
+    imageAlt: 'Guests enjoying an evening at SushiGO',
+  },
+];
+
 export const navLinks: NavLink[] = [
   { label: 'Menu', href: '/menu', active: true },
-  { label: 'About', href: '#about' },
+  { label: 'About', href: '/about' },
   { label: 'Reservations', href: '/reservations' },
   { label: 'Contact', href: '#contact' },
 ];
 
 export const footerExplore: NavLink[] = [
   { label: 'Menu', href: '/menu', active: true },
-  { label: 'About', href: '#about' },
+  { label: 'About', href: '/about' },
   { label: 'Reservations', href: '/reservations' },
   { label: 'Contact', href: '#contact' },
 ];
 
 export const footerInfo: NavLink[] = [
-  { label: 'Visit Details', href: '#' },
-  { label: 'Privacy Policy', href: '#' },
-  { label: 'Terms of Service', href: '#' },
+  { label: 'Privacy Policy', href: '/privacy' },
+  { label: 'Terms of Service', href: '/terms' },
   { label: 'My Account', href: '/profile' },
 ];
 
@@ -113,7 +160,7 @@ export const menuPageItems: MenuPageItem[] = [
     name: 'Dragon Roll',
     description: 'Premium eel, fresh avocado, cucumber, and unagi sauce.',
     price: '55,000 UZS',
-    image: 'https://lh3.googleusercontent.com/aida/ADBb0uijkyg1Z6KWD_N5aIBQGMc6RMorexpNshiJVdLqo6J92AVUa9NTxDTeYJej7fR5uQixi9qBajPd5-4OJVmT1EtW7mW6VQEr9SqsvzHk8QCJ3tvC2WEPpuGf8sLvulaPqw-9i_WtOlqN3gH3ZugEdGu1PC-h3DcsZU7ewCl12Ch-cxvJhImynzIGPxE9f7Md89IRoDQPlTYjKMXaoPEadKGQSGMPJfWnVMAqRb2Y0pvckJyuBX9TkqVkVuFL',
+    image: 'https://images.unsplash.com/photo-1713453018516-b08018818c0c?auto=format&fit=crop&w=800&q=80',
     badge: "Chef's Choice",
     badgeVariant: 'red',
   },
@@ -122,14 +169,14 @@ export const menuPageItems: MenuPageItem[] = [
     name: 'Salmon Nigiri',
     description: 'Hand-pressed premium vinegared rice with fresh Atlantic salmon.',
     price: '42,000 UZS',
-    image: 'https://lh3.googleusercontent.com/aida/ADBb0ug5v3l6jX6XmiHkS95ThSsVSzNWNufTWwYXJQ0LG3VAb3xOcZNUKfVCXiwz0SWRcpWMestTv_JYJiAiXRsJldVNS_rX4abb_OZqIAmCWC8nIlkmpub6Ie_KYkd-0U9km8H-JkIYtfoHzBDhiInqu9XnuHV7C0BJnIfn7G6TfASCkpRkxzscPfJTy47Or6JyBn8hXbMQt1GV7x4F_40u9Jn_9ykb6YeSx_rCfpXSo35_P20zGAQV2JAzDzCF',
+    image: 'https://images.unsplash.com/photo-1657895116421-c1c9596d8dd2?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 3,
     name: 'Tonkotsu Ramen',
     description: '12-hour simmered pork broth, chashu pork, and soft egg.',
     price: '65,000 UZS',
-    image: 'https://lh3.googleusercontent.com/aida/ADBb0uiQnQ8vkdWjZc7uPGTUY7ukrUe6dhq47q0-QdfPmveIBejjw_fyartPYkRF11l5udtKMCxmx_1Y81r2TcxBiASRTVv1DiOjixH5-BHX8CzHKQBwRUKYR8ADpdaNH199EIewJGI6N5pBTqhGZm23VHd0AhS4O6H9rFsA3kBkABf-eGCLIC0ojmnBigDa0f3EMey7Q2L-zz17XHfqOKip2ujuK_EIxWRuGqZ1Yl8uD5busnJUHJGB_1dPYsw',
+    image: 'https://images.unsplash.com/photo-1635379511574-bc167ca085c8?auto=format&fit=crop&w=800&q=80',
     badge: 'Signature',
     badgeVariant: 'frosted',
   },
@@ -138,6 +185,38 @@ export const menuPageItems: MenuPageItem[] = [
     name: 'Rainbow Roll',
     description: 'California roll topped with assorted fresh fish and avocado.',
     price: '58,000 UZS',
-    image: 'https://lh3.googleusercontent.com/aida/ADBb0ujjI5dibVius1-fdiLTzxsUusq7_lq987nGUnYw8axAg6BeI_Qs0AI9Q6cPjPMYz4czKS7hCdn-00NfUPF_CD9MRI5TaGn3wKWWL2upNLGndC5mdmeZoDZZWdwHhHRBou71Cf5B9kHgpVA9wvRzx9Yp8yDR9pJW5MZfRik735lNFUPhgca-2TGgB95rdNopAS5sandwFYY2-SrUV8XRGXzZ51lbQ6yMpdVDrVa6y6KXShoE0dlKa-Ks84wj',
+    image: 'https://images.unsplash.com/photo-1546530785-86397501ae20?auto=format&fit=crop&w=800&q=80',
+  },
+];
+
+export interface SignatureDish {
+  name: string;
+  description: string;
+  image: string;
+  chefsFavorite?: boolean;
+}
+
+export const signatureDishes: SignatureDish[] = [
+  {
+    name: 'Volcano Roll',
+    description:
+      'A fiery tempura roll crowned with spicy tuna, sriracha aioli and a torched finish.',
+    image:
+      'https://images.unsplash.com/photo-1546530785-86397501ae20?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Black Garlic Ramen',
+    description:
+      'Slow-simmered tonkotsu deepened with black-garlic oil, chashu and a jammy egg.',
+    image:
+      'https://images.unsplash.com/photo-1623341214825-9f4f963727da?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Truffle Salmon Nigiri',
+    description:
+      "Chef Sato's favorite — buttery salmon, shaved truffle and a whisper of yuzu.",
+    image:
+      'https://images.unsplash.com/photo-1583623025817-d180a2221d0a?auto=format&fit=crop&w=800&q=80',
+    chefsFavorite: true,
   },
 ];

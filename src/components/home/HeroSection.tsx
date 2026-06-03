@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { heroStats } from "@/data/mockData";
+import KaitenRing from "./KaitenRing";
 
 export default function HeroSection() {
   return (
@@ -9,7 +9,7 @@ export default function HeroSection() {
       <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-20 w-full grid md:grid-cols-2 gap-16 items-center relative z-10">
-        {/* Left: copy + stats */}
+        {/* Copy + stats */}
         <div className="space-y-8 relative">
           <div className="absolute -top-12 -left-12 text-[12rem] font-headline text-surface pointer-events-none select-none z-0 leading-none">
             新鮮
@@ -64,43 +64,9 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {/* Right: image card */}
-        <div className="relative w-full aspect-square md:aspect-[4/5] rounded-xl border border-surface-border bg-surface p-4 flex items-center justify-center shadow-2xl shadow-primary/5">
-          <div className="relative w-full h-full rounded-lg overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent z-10" />
-            <Image
-              src="https://lh3.googleusercontent.com/aida/ADBb0uhNCPMtGm_Zp0mEthfIUvUs4wf1MQPDi_xdxZ4LaurxKfS85pQxW4sDGhlk7YW0Sh2Fazvh2IxtYa6_EXD55C8s3KYtKZdemskTj6GzF1VqA9-JpEA_Mg1uyELwfqkzfrSnW44oiDDU-G8xW56wQrVAgmHUqBUMgHWFnulsDqEhe9DgYg-0vk_ttNbhljsdHIdZThCMzSdwMw4U0o2spg913bim_aUyhMXXliYwvlRj67TJEeOozLWEjVI"
-              alt="Premium Sushi Platter"
-              fill
-              className="object-cover img-hover-zoom"
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
-            />
-
-            {/* Floating card */}
-            <div className="absolute bottom-8 -left-8 md:-left-12 bg-background/90 backdrop-blur-md border border-surface-border rounded-lg p-4 shadow-2xl shadow-primary/20 z-20 flex items-center gap-4 w-72 transition-transform duration-500 hover:-translate-y-2">
-              <div className="relative w-16 h-16 rounded bg-surface overflow-hidden flex-shrink-0">
-                <Image
-                  src="https://lh3.googleusercontent.com/aida/ADBb0uijkyg1Z6KWD_N5aIBQGMc6RMorexpNshiJVdLqo6J92AVUa9NTxDTeYJej7fR5uQixi9qBajPd5-4OJVmT1EtW7mW6VQEr9SqsvzHk8QCJ3tvC2WEPpuGf8sLvulaPqw-9i_WtOlqN3gH3ZugEdGu1PC-h3DcsZU7ewCl12Ch-cxvJhImynzIGPxE9f7Md89IRoDQPlTYjKMXaoPEadKGQSGMPJfWnVMAqRb2Y0pvckJyuBX9TkqVkVuFL"
-                  alt="Dragon Roll"
-                  fill
-                  className="object-cover"
-                  sizes="64px"
-                />
-              </div>
-              <div>
-                <p className="font-accent text-primary text-sm mb-0.5">
-                  Today&apos;s Special
-                </p>
-                <p className="font-headline text-lg tracking-tight leading-none mb-1 text-text-primary">
-                  Dragon Roll
-                </p>
-                <p className="font-body text-xs text-text-muted line-clamp-1">
-                  Eel, cucumber, avocado top
-                </p>
-              </div>
-            </div>
-          </div>
+        {/* Right: kaiten conveyor ring */}
+        <div className="flex items-center justify-center">
+          <KaitenRing />
         </div>
       </div>
     </section>

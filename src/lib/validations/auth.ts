@@ -28,8 +28,13 @@ export const resetPasswordSchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
-  full_name: z.string().min(2).optional(),
-  phone: z.string().optional(),
+  full_name: z.string().min(2).max(100).optional(),
+  // L9: bound phone length/format, consistent with the reservation schema
+  phone: z
+    .string()
+    .regex(/^\+?[0-9]{7,15}$/, "Phone number must be 7–15 digits")
+    .optional()
+    .or(z.literal("")),
   preferred_language: z.enum(["en", "uz", "ru"]).optional(),
   // L-04: Restrict avatar URLs to known-safe domains (own Supabase bucket + Google OAuth avatars)
   avatar_url: z

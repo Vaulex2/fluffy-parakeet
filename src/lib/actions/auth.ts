@@ -48,7 +48,7 @@ export async function signIn(formData: FormData, next?: string) {
 
   const rateLimitKey = parsed.data.email; // L-01: was misleadingly named 'ip'
   if (!(await checkRateLimit('signin', rateLimitKey))) {
-    return { error: "Too many attempts. Please wait 15 minutes." };
+    return { error: "Too many attempts. Please wait 30 minutes." };
   }
 
   const supabase = createClient();

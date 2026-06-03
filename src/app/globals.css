@@ -108,6 +108,14 @@
     transform: translateY(-2px);
     box-shadow: 0 10px 25px -5px rgba(225, 29, 42, 0.3), 0 8px 10px -6px rgba(225, 29, 42, 0.1);
   }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @layer components {
@@ -118,6 +126,30 @@
 
   .animate-marquee {
     animation: marquee 20s linear infinite;
+  }
+
+  /* Kaiten conveyor ring: ring spins, plates counter-spin to stay upright */
+  @keyframes kaiten-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes kaiten-spin-reverse {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(-360deg); }
+  }
+
+  .kaiten-ring       { animation: kaiten-spin         36s linear infinite; }
+  .kaiten-plate-spin { animation: kaiten-spin-reverse 36s linear infinite; }
+
+  /* Fast spin for the loading plate (reuses the kaiten-spin keyframe) */
+  .kaiten-loader { animation: kaiten-spin 1.4s linear infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kaiten-ring,
+    .kaiten-plate-spin,
+    .kaiten-loader {
+      animation: none;
+    }
   }
 
   /* Order success check animation */
@@ -149,4 +181,13 @@
   .ring-ping-slow { animation: ring-ping-slow 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both; }
   .draw-check     { animation: draw-check   0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.5s  both; }
   .burst-dot      { animation: burst-dot    0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.7s  both; }
+
+  @keyframes card-enter {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-card-enter {
+    animation: card-enter 0.5s var(--expo) both;
+    animation-delay: min(calc(var(--i, 0) * 60ms), 600ms);
+  }
 }

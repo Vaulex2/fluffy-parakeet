@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { OrderWithItems } from '@/types/database';
 
 const PAGE_SIZE = 10;
+const MAX_PAGE_SIZE = 100;
 
 export interface PaginatedOrders {
   orders: OrderWithItems[];
@@ -17,10 +18,13 @@ export async function getMyOrders(page = 1, pageSize = PAGE_SIZE): Promise<Pagin
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) return { orders: [], total: 0, page, pageSize, totalPages: 0 };
+  const safePage = Math.max(1, Math.floor(page));
+  const safePageSize = Math.min(Math.max(1, Math.floor(pageSize)), MAX_PAGE_SIZE);
 
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
+  if (!user) return { orders: [], total: 0, page: safePage, pageSize: safePageSize, totalPages: 0 };
+
+  const from = (safePage - 1) * safePageSize;
+  const to = from + safePageSize - 1;
 
   const { data, error, count } = await supabase
     .from('orders')
@@ -34,8 +38,8 @@ export async function getMyOrders(page = 1, pageSize = PAGE_SIZE): Promise<Pagin
   return {
     orders: (data ?? []) as OrderWithItems[],
     total: count ?? 0,
-    page,
-    pageSize,
-    totalPages: Math.ceil((count ?? 0) / pageSize),
+    page: safePage,
+    pageSize: safePageSize,
+    totalPages: Math.ceil((count ?? 0) / safePageSize),
   };
 }

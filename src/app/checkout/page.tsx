@@ -21,7 +21,6 @@ export default function CheckoutPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [userId, setUserId] = useState<string | null>(null);
   const [orderType, setOrderType] = useState<"delivery" | "pickup">("pickup");
 
   // Pre-fill from auth user on mount
@@ -32,7 +31,6 @@ export default function CheckoutPage() {
     );
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
-      setUserId(user.id);
       if (user.email && !email) setEmail(user.email);
       // Try to get profile for name/phone
       supabase
@@ -155,7 +153,6 @@ export default function CheckoutPage() {
           delivery_address: orderType === "delivery" ? address : null,
           total_amount: total,
           notes: notes || null,
-          user_id: userId,
         },
         items.map((i) => ({
           order_id: "",

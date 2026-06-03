@@ -75,6 +75,42 @@ CREATE TABLE reservations (
   ) WHERE (status NOT IN ('canceled_by_admin', 'no_show'))
 );
 
+-- Self-service management (confirmation/reminder emails link here by token)
+ALTER TABLE reservations ADD COLUMN IF NOT EXISTS manage_token uuid NOT NULL DEFAULT gen_random_uuid();
+ALTER TABLE reservations ADD COLUMN IF NOT EXISTS reminder_sent_at timestamptz;
+CREATE UNIQUE INDEX IF NOT EXISTS reservations_manage_token_idx ON reservations(manage_token);
+
+-- ============================================================
+-- WAITLIST
+-- When a requested slot is fully booked, guests can join the
+-- waitlist and are emailed if a table frees up (e.g. on cancel).
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS reservation_waitlist (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  guest_name text NOT NULL,
+  guest_phone text NOT NULL,
+  guest_email text,
+  reservation_date date NOT NULL,
+  desired_start_time time NOT NULL,
+  desired_end_time time NOT NULL,
+  guest_count integer NOT NULL CHECK (guest_count > 0),
+  status text NOT NULL DEFAULT 'waiting'
+    CHECK (status IN ('waiting', 'notified', 'converted', 'expired', 'cancelled')),
+  manage_token uuid NOT NULL DEFAULT gen_random_uuid(),
+  notified_at timestamptz,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS reservation_waitlist_lookup_idx
+  ON reservation_waitlist (reservation_date, status);
+
+ALTER TABLE reservation_waitlist ENABLE ROW LEVEL SECURITY;
+
+-- Guests join the waitlist without an account; reads go through the admin client + token.
+CREATE POLICY public_create_waitlist ON reservation_waitlist
+  FOR INSERT WITH CHECK (true);
+
 -- ============================================================
 -- ORDERS (guest checkout — no customer account required)
 -- ============================================================
@@ -127,20 +163,40 @@ INSERT INTO storage.buckets (id, name, public) VALUES ('menu-images', 'menu-imag
 INSERT INTO storage.buckets (id, name, public) VALUES ('gallery', 'gallery', true)
   ON CONFLICT (id) DO NOTHING;
 
--- Storage policies: only authenticated admins can upload
+-- Storage policies: only authenticated admins can upload or delete
 CREATE POLICY "admin_upload_menu_images" ON storage.objects
   FOR INSERT TO authenticated
-  WITH CHECK (bucket_id = 'menu-images');
+  WITH CHECK (
+    bucket_id = 'menu-images'
+    AND (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  );
 
 CREATE POLICY "public_read_menu_images" ON storage.objects
   FOR SELECT USING (bucket_id = 'menu-images');
 
+CREATE POLICY "admin_delete_menu_images" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'menu-images'
+    AND (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  );
+
 CREATE POLICY "admin_upload_gallery" ON storage.objects
   FOR INSERT TO authenticated
-  WITH CHECK (bucket_id = 'gallery');
+  WITH CHECK (
+    bucket_id = 'gallery'
+    AND (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  );
 
 CREATE POLICY "public_read_gallery_images" ON storage.objects
   FOR SELECT USING (bucket_id = 'gallery');
+
+CREATE POLICY "admin_delete_gallery" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'gallery'
+    AND (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  );
 
 -- ============================================================
 -- ROW LEVEL SECURITY
@@ -160,8 +216,18 @@ CREATE POLICY "public_read_items" ON menu_items FOR SELECT USING (is_available =
 CREATE POLICY "public_read_tables" ON restaurant_tables FOR SELECT USING (is_active = true);
 CREATE POLICY "public_read_gallery" ON gallery_images FOR SELECT USING (is_active = true);
 
--- Public read: reservations (for availability checking — client only sees time/table/status)
-CREATE POLICY "public_read_reservations" ON reservations FOR SELECT USING (true);
+-- Reservations: authenticated users read only their own rows; anon uses reservation_slots view
+CREATE POLICY "auth_read_own_reservations" ON reservations
+  FOR SELECT TO authenticated
+  USING (user_id = auth.uid());
+
+-- Restricted view for availability checking — exposes no PII
+CREATE OR REPLACE VIEW public.reservation_slots AS
+  SELECT table_id, reservation_date, start_time, end_time, status
+  FROM reservations
+  WHERE status IN ('pending', 'confirmed');
+
+GRANT SELECT ON public.reservation_slots TO anon, authenticated;
 
 -- Public insert: guests create reservations and orders without an account
 CREATE POLICY "public_create_reservation" ON reservations FOR INSERT WITH CHECK (true);

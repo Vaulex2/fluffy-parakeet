@@ -23,26 +23,29 @@ export async function getUsers(): Promise<AdminUser[]> {
 
   if (!userIds.length) return [];
 
-  // Fetch profiles
-  const { data: profiles, error: profilesError } = await supabase
-    .from('profiles')
-    .select('*')
-    .in('id', userIds);
+  // These three only depend on userIds, so run them concurrently rather than
+  // awaiting in series — this is the slowest admin page.
+  const [
+    { data: profiles, error: profilesError },
+    { data: orderCounts },
+    { data: resvCounts },
+  ] = await Promise.all([
+    // Profiles
+    supabase.from('profiles').select('*').in('id', userIds),
+    // Order counts per user
+    supabase
+      .from('orders')
+      .select('user_id')
+      .in('user_id', userIds)
+      .not('user_id', 'is', null),
+    // Reservation counts per user
+    supabase
+      .from('reservations')
+      .select('user_id')
+      .in('user_id', userIds)
+      .not('user_id', 'is', null),
+  ]);
   if (profilesError) throw profilesError;
-
-  // Count orders per user
-  const { data: orderCounts } = await supabase
-    .from('orders')
-    .select('user_id')
-    .in('user_id', userIds)
-    .not('user_id', 'is', null);
-
-  // Count reservations per user
-  const { data: resvCounts } = await supabase
-    .from('reservations')
-    .select('user_id')
-    .in('user_id', userIds)
-    .not('user_id', 'is', null);
 
   const orderMap: Record<string, number> = {};
   (orderCounts ?? []).forEach((r) => {
