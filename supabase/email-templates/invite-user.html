@@ -1,0 +1,27 @@
+<!-- Supabase → Authentication → Emails → "Invite user" → Message body (HTML)
+     Subject suggestion: You're invited to SushiGO
+     Variable used: {{ .ConfirmationURL }} -->
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0B0B0B;font-family:'Manrope',Arial,sans-serif;color:#F4ECD8;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0B0B0B;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#111;border-radius:12px;overflow:hidden;border:1px solid rgba(244,236,216,0.08);">
+        <tr><td style="background:#E11D2A;padding:24px 32px;">
+          <h1 style="margin:0;font-size:28px;font-weight:700;color:#F4ECD8;letter-spacing:-0.02em;">SUSHIGO</h1>
+          <p style="margin:6px 0 0;font-size:14px;color:rgba(244,236,216,0.7);">You're invited</p>
+        </td></tr>
+        <tr><td style="padding:32px;">
+          <p style="margin:0 0 24px;font-size:16px;line-height:1.6;">You've been invited to join <strong>SushiGO</strong>. Tap the button below to accept the invitation and set up your account.</p>
+          <div style="text-align:center;margin-bottom:24px;">
+            <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#E11D2A;color:#F4ECD8;font-size:15px;font-weight:700;text-decoration:none;padding:14px 32px;border-radius:8px;">Accept invitation</a>
+          </div>
+          <p style="margin:0 0 24px;font-size:13px;color:rgba(244,236,216,0.55);text-align:center;line-height:1.6;">Button not working? Copy and paste this link into your browser:<br><a href="{{ .ConfirmationURL }}" style="color:#E11D2A;text-decoration:none;word-break:break-all;">{{ .ConfirmationURL }}</a></p>
+          <p style="margin:0;font-size:13px;color:rgba(244,236,216,0.45);">If you weren't expecting this invitation, you can safely ignore this email. Please do not reply to this email.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>

@@ -17,7 +17,13 @@ HTML into the **Message body** field → **Save**.
 |---|---|---|---|
 | Confirm signup | `confirm-signup.html` | `Confirm your email — SushiGO` | `{{ .ConfirmationURL }}` |
 | Reset Password | `reset-password.html` | `Reset your password — SushiGO` | `{{ .ConfirmationURL }}` |
-| Magic Link | `magic-link.html` | `Your sign-in link — SushiGO` | `{{ .ConfirmationURL }}` |
+| Magic link or OTP | `magic-link.html` | `Your sign-in link — SushiGO` | `{{ .ConfirmationURL }}` |
+| Change email address | `change-email.html` | `Confirm your new email — SushiGO` | `{{ .ConfirmationURL }}` |
+| Invite user | `invite-user.html` | `You're invited to SushiGO` | `{{ .ConfirmationURL }}` |
+| Reauthentication | `reauthentication.html` | `Your SushiGO verification code` | `{{ .Token }}` (a code, not a link) |
+
+The two most important ones for this app are **Confirm signup** and **Reset Password**
+(both flows are live). Invite/Reauthentication are only sent if you use those features.
 
 After saving, use **Send test email** (or trigger a real signup / password reset) to verify.
 
