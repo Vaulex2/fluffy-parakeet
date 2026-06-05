@@ -31,10 +31,10 @@ export async function updateOrderStatus(
   const { userId: actorId } = await requireAdmin();
   const supabase = createAdminClient();
 
-  // Fetch previous status for audit
+  // Fetch previous status + loyalty fields for audit and point awarding
   const { data: prev } = await supabase
     .from('orders')
-    .select('status')
+    .select('status, user_id, total_amount, points_earned')
     .eq('id', id)
     .single();
 
@@ -43,6 +43,29 @@ export async function updateOrderStatus(
     .update({ status })
     .eq('id', id);
   if (error) throw error;
+
+  // ── Loyalty: award 1 pt per 1,000 UZS once, when an order is delivered ─────
+  // points_earned acts as an idempotency guard so re-marking delivered never
+  // double-credits.
+  if (
+    status === 'delivered' &&
+    prev?.user_id &&
+    (prev.points_earned ?? 0) === 0
+  ) {
+    const earned = Math.floor((prev.total_amount ?? 0) / 1000);
+    if (earned > 0) {
+      await supabase.from('orders').update({ points_earned: earned }).eq('id', id);
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('loyalty_points')
+        .eq('id', prev.user_id)
+        .single();
+      await supabase
+        .from('profiles')
+        .update({ loyalty_points: (profile?.loyalty_points ?? 0) + earned })
+        .eq('id', prev.user_id);
+    }
+  }
 
   // Audit log with verified actor
   await supabase.from('audit_log').insert({

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import MenuGrid from "./MenuGrid";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { useFavorites } from "@/components/favorites/FavoritesContext";
 import { localizedField } from "@/lib/i18n";
 import type { MenuCategory, MenuItemWithAvailability } from "@/types/database";
 
@@ -13,10 +14,12 @@ interface MenuClientShellProps {
 
 export default function MenuClientShell({ items, categories }: MenuClientShellProps) {
   const { locale, t } = useLanguage();
+  const { ids: favoriteIds, enabled: favEnabled } = useFavorites();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showPopular, setShowPopular] = useState(false);
   const [showFeatured, setShowFeatured] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const q = searchQuery.trim().toLowerCase();
@@ -27,17 +30,19 @@ export default function MenuClientShell({ items, categories }: MenuClientShellPr
         localizedField(item, "name", locale).toLowerCase().includes(q) ||
         localizedField(item, "description", locale).toLowerCase().includes(q)) &&
       (!showPopular || item.is_popular) &&
-      (!showFeatured || item.is_featured)
+      (!showFeatured || item.is_featured) &&
+      (!showFavorites || favoriteIds.has(item.id))
   );
 
   const hasActiveFilters =
-    activeCategory !== null || q !== "" || showPopular || showFeatured;
+    activeCategory !== null || q !== "" || showPopular || showFeatured || showFavorites;
 
   function clearAllFilters() {
     setActiveCategory(null);
     setSearchQuery("");
     setShowPopular(false);
     setShowFeatured(false);
+    setShowFavorites(false);
   }
 
   const pillBase =
@@ -138,6 +143,19 @@ export default function MenuClientShell({ items, categories }: MenuClientShellPr
               <span className="material-symbols-outlined text-[14px]">star</span>
               {t("menu.featured")}
             </button>
+            {favEnabled && (
+              <button
+                onClick={() => setShowFavorites((v) => !v)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-body text-xs border transition-colors duration-200 ${
+                  showFavorites ? pillActive : pillInactive
+                }`}
+              >
+                <span className={`material-symbols-outlined text-[14px] ${showFavorites ? "fill" : ""}`}>
+                  favorite
+                </span>
+                {t("favorites.title")}
+              </button>
+            )}
           </div>
 
           <span className="text-text-muted font-body text-xs">

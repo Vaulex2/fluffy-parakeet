@@ -12,7 +12,8 @@ export type OrderResult =
 
 export async function createOrder(
   order: InsertOrder,
-  items: InsertOrderItem[]
+  items: InsertOrderItem[],
+  pointsToRedeem = 0
 ): Promise<OrderResult> {
   if (!order.customer_name || !order.customer_phone || !items.length) {
     return { success: false, error: 'Missing required fields.' };
@@ -85,6 +86,23 @@ export async function createOrder(
 
   const supabase = createAdminClient();
 
+  // ── Loyalty redemption (1 pt = 1 UZS, min 100, max 50% of order) ───────────
+  // Only signed-in users can redeem. `redeem_loyalty_points` deducts atomically
+  // (guarded UPDATE) and returns true only if the balance covered it.
+  let discount = 0;
+  if (pointsToRedeem > 0 && verifiedUserId) {
+    const maxByOrder = Math.floor(calculatedTotal * 0.5);
+    const desired = Math.min(Math.floor(pointsToRedeem), maxByOrder);
+    if (desired >= 100) {
+      const { data: ok, error: decErr } = await supabase.rpc('redeem_loyalty_points', {
+        p_user: verifiedUserId,
+        p_points: desired,
+      });
+      if (!decErr && ok === true) discount = desired;
+    }
+  }
+  const finalTotal = calculatedTotal - discount;
+
   const { data: newOrder, error: orderError } = await supabase
     .from('orders')
     .insert({
@@ -93,7 +111,9 @@ export async function createOrder(
       customer_email: order.customer_email ?? null,
       order_type: order.order_type,
       delivery_address: order.delivery_address ?? null,
-      total_amount: calculatedTotal, // use server-calculated total
+      total_amount: finalTotal, // server-calculated total, less any points discount
+      points_redeemed: discount,
+      discount_amount: discount,
       notes: order.notes ?? null,
       user_id: verifiedUserId, // server-verified session id, never caller-supplied
     })
@@ -102,6 +122,10 @@ export async function createOrder(
 
   if (orderError) {
     console.error('[createOrder] DB error:', orderError);
+    // Refund any points we deducted, since the order didn't persist.
+    if (discount > 0 && verifiedUserId) {
+      await supabase.rpc('redeem_loyalty_points', { p_user: verifiedUserId, p_points: -discount });
+    }
     return { success: false, error: 'Could not place order. Please try again.' };
   }
 
@@ -116,7 +140,7 @@ export async function createOrder(
     await sendOrderConfirmation(order.customer_email, {
       orderId: newOrder.id,
       items: items.map((i) => ({ name: i.item_name, quantity: i.quantity, price: i.unit_price })),
-      total: calculatedTotal,
+      total: finalTotal,
       type: order.order_type === 'dine_in' ? 'pickup' : order.order_type,
       address: order.delivery_address ?? undefined,
     }).catch(() => {});

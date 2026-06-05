@@ -1,99 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/components/cart/CartContext";
-import { useFlyToCart } from "@/components/cart/FlyToCartContext";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { FavoriteHeart } from "@/components/favorites/FavoriteHeart";
+import MenuItemModal from "@/components/menu/MenuItemModal";
+import { QuantityControl, LowStockNote, formatPrice } from "@/components/menu/MenuItemControls";
 import { localizedField } from "@/lib/i18n";
 import type { MenuItemWithAvailability } from "@/types/database";
-
-// Below this many remaining, surface a "Only N left today" hint to customers.
-const LOW_STOCK_THRESHOLD = 5;
-
-function formatPrice(uzs: number) {
-  return uzs.toLocaleString("uz-UZ") + " UZS";
-}
-
-// Shared quantity stepper / add button used in both card and list row.
-// Respects the item's remaining daily capacity (null = unlimited).
-function QuantityControl({ item }: { item: MenuItemWithAvailability }) {
-  const { addItem, items: cartItems, updateQuantity } = useCart();
-  const { locale, t } = useLanguage();
-  const fly = useFlyToCart();
-  const cartEntry = cartItems.find((ci) => ci.id === item.id);
-  const qty = cartEntry?.quantity ?? 0;
-  const name = localizedField(item, "name", locale);
-  const { remaining } = item;
-
-  // Fully sold out for today — no add control at all.
-  if (remaining === 0) {
-    return (
-      <span className="font-headline tracking-tight uppercase text-[11px] px-3 py-1.5 rounded-full bg-surface border border-surface-border text-text-muted whitespace-nowrap">
-        {t("menu.soldOutToday")}
-      </span>
-    );
-  }
-
-  const atMax = remaining != null && qty >= remaining;
-
-  if (qty > 0) {
-    return (
-      <div className="flex items-center gap-1.5 bg-surface border border-surface-border rounded-full px-2 py-1">
-        <button
-          onClick={() => updateQuantity(item.id, qty - 1)}
-          className="w-6 h-6 rounded-full flex items-center justify-center text-text-muted hover:text-primary transition-colors text-base leading-none"
-          aria-label="Decrease quantity"
-        >
-          −
-        </button>
-        <span className="text-text-primary font-body text-sm w-4 text-center select-none">
-          {qty}
-        </span>
-        <button
-          onClick={() => updateQuantity(item.id, qty + 1)}
-          disabled={atMax}
-          className="w-6 h-6 rounded-full flex items-center justify-center text-text-muted hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-text-muted"
-          aria-label="Increase quantity"
-        >
-          <span className="material-symbols-outlined fill text-[16px]">add</span>
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <button
-      onClick={(e) => {
-        fly({ imageUrl: item.image_url, from: e.currentTarget.getBoundingClientRect() });
-        addItem(
-          {
-            id: item.id,
-            name,
-            price_uzs: item.price,
-            image_url: item.image_url,
-          },
-          { openDrawer: false }
-        );
-      }}
-      className="bg-light-bg text-background p-2 rounded-full hover:bg-primary hover:text-white transition-colors duration-300"
-      aria-label={`Add ${name} to cart`}
-    >
-      <span className="material-symbols-outlined fill text-[20px]">add</span>
-    </button>
-  );
-}
-
-// "Only N left today" hint — shown when an item is low but not sold out.
-function LowStockNote({ item, className = "" }: { item: MenuItemWithAvailability; className?: string }) {
-  const { t } = useLanguage();
-  const { remaining } = item;
-  if (remaining == null || remaining === 0 || remaining > LOW_STOCK_THRESHOLD) return null;
-  return (
-    <span className={`font-body text-xs text-amber-400 ${className}`}>
-      {t("menu.onlyNLeft", { count: remaining })}
-    </span>
-  );
-}
 
 // Badge overlays for popular / featured items
 function ItemBadges({
@@ -132,9 +47,10 @@ function ItemBadges({
 interface MenuCardProps {
   item: MenuItemWithAvailability;
   index: number;
+  onOpen: (item: MenuItemWithAvailability) => void;
 }
 
-function MenuCard({ item, index }: MenuCardProps) {
+function MenuCard({ item, index, onOpen }: MenuCardProps) {
   const { locale } = useLanguage();
   const name = localizedField(item, "name", locale);
   const description = localizedField(item, "description", locale);
@@ -143,7 +59,11 @@ function MenuCard({ item, index }: MenuCardProps) {
       className="group relative bg-surface border border-surface-border rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-primary/10 transition-shadow duration-500 opacity-0 animate-card-enter"
       style={{ "--i": index } as React.CSSProperties}
     >
-      <div className="aspect-[3/4] overflow-hidden relative">
+      <FavoriteHeart id={item.id} className="absolute top-2.5 right-2.5 z-30 w-9 h-9" />
+      <div
+        className="aspect-[3/4] overflow-hidden relative cursor-pointer"
+        onClick={() => onOpen(item)}
+      >
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent z-10 pointer-events-none" />
         <ItemBadges item={item} />
         {item.image_url ? (
@@ -164,7 +84,10 @@ function MenuCard({ item, index }: MenuCardProps) {
       </div>
 
       <div className="p-6 relative z-20 -mt-12">
-        <h3 className="font-headline text-3xl text-text-primary tracking-tighter uppercase mb-1">
+        <h3
+          className="font-headline text-3xl text-text-primary tracking-tighter uppercase mb-1 cursor-pointer hover:text-primary transition-colors"
+          onClick={() => onOpen(item)}
+        >
           {name}
         </h3>
         {description && (
@@ -191,7 +114,7 @@ function MenuCard({ item, index }: MenuCardProps) {
   );
 }
 
-function MenuListRow({ item, index }: MenuCardProps) {
+function MenuListRow({ item, index, onOpen }: MenuCardProps) {
   const { locale } = useLanguage();
   const name = localizedField(item, "name", locale);
   const description = localizedField(item, "description", locale);
@@ -201,7 +124,10 @@ function MenuListRow({ item, index }: MenuCardProps) {
       style={{ "--i": index } as React.CSSProperties}
     >
       {/* Fixed-size image */}
-      <div className="relative w-[120px] h-[120px] flex-shrink-0 rounded-lg overflow-hidden">
+      <div
+        className="relative w-[120px] h-[120px] flex-shrink-0 rounded-lg overflow-hidden cursor-pointer"
+        onClick={() => onOpen(item)}
+      >
         <ItemBadges item={item} compact />
         {item.image_url ? (
           <Image
@@ -222,9 +148,15 @@ function MenuListRow({ item, index }: MenuCardProps) {
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <h3 className="font-headline text-2xl tracking-tighter uppercase text-text-primary truncate">
-          {name}
-        </h3>
+        <div className="flex items-start justify-between gap-2">
+          <h3
+            className="font-headline text-2xl tracking-tighter uppercase text-text-primary truncate cursor-pointer hover:text-primary transition-colors"
+            onClick={() => onOpen(item)}
+          >
+            {name}
+          </h3>
+          <FavoriteHeart id={item.id} className="w-8 h-8 shrink-0" size={18} />
+        </div>
         {description && (
           <p className="text-text-muted text-sm font-light mt-0.5 line-clamp-2">
             {description}
@@ -266,6 +198,7 @@ export default function MenuGrid({
 }: MenuGridProps) {
   const { count, openCart } = useCart();
   const { t } = useLanguage();
+  const [modalItem, setModalItem] = useState<MenuItemWithAvailability | null>(null);
 
   return (
     <>
@@ -308,15 +241,19 @@ export default function MenuGrid({
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {items.map((item, i) => (
-            <MenuCard key={item.id} item={item} index={i} />
+            <MenuCard key={item.id} item={item} index={i} onOpen={setModalItem} />
           ))}
         </div>
       ) : (
         <div className="flex flex-col gap-4">
           {items.map((item, i) => (
-            <MenuListRow key={item.id} item={item} index={i} />
+            <MenuListRow key={item.id} item={item} index={i} onOpen={setModalItem} />
           ))}
         </div>
+      )}
+
+      {modalItem && (
+        <MenuItemModal item={modalItem} onClose={() => setModalItem(null)} />
       )}
     </>
   );

@@ -24,6 +24,8 @@ export default function CheckoutPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [orderType, setOrderType] = useState<"delivery" | "pickup">("pickup");
+  const [points, setPoints] = useState(0); // loyalty balance (0 for guests)
+  const [usePoints, setUsePoints] = useState(false);
 
   // Pre-fill from auth user on mount
   useEffect(() => {
@@ -34,21 +36,28 @@ export default function CheckoutPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
       if (user.email && !email) setEmail(user.email);
-      // Try to get profile for name/phone
+      // Try to get profile for name/phone/loyalty balance
       supabase
         .from("profiles")
-        .select("full_name, phone")
+        .select("full_name, phone, loyalty_points")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
           if (data?.full_name && !name) setName(data.full_name);
           if (data?.phone && !phone) setPhone(data.phone);
+          if (typeof data?.loyalty_points === "number") setPoints(data.loyalty_points);
         });
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
+
+  // Points redemption: 1 pt = 1 UZS, min 100, max 50% of the order.
+  const maxRedeemable = Math.min(points, Math.floor(total * 0.5));
+  const canRedeem = maxRedeemable >= 100;
+  const discount = usePoints && canRedeem ? maxRedeemable : 0;
+  const payable = total - discount;
 
   if (items.length === 0 && !orderId) {
     return (
@@ -163,10 +172,11 @@ export default function CheckoutPage() {
           quantity: i.quantity,
           unit_price: i.price_uzs,
           subtotal: i.price_uzs * i.quantity,
-        }))
+        })),
+        discount // points to redeem (1 pt = 1 UZS); ignored for guests server-side
       );
       if (result.success) {
-        setConfirmedTotal(total);
+        setConfirmedTotal(payable);
         clearCart();
         setOrderId(result.id);
       } else {
@@ -213,9 +223,59 @@ export default function CheckoutPage() {
                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-between border-t border-surface-border pt-4">
-              <span className="text-text-muted font-body">{t("checkout.totalLabel")}</span>
-              <span className="text-primary font-headline text-2xl">{formatPrice(total)}</span>
+            {/* Loyalty points redemption (signed-in users with enough points) */}
+            {canRedeem && (
+              <button
+                type="button"
+                onClick={() => setUsePoints((v) => !v)}
+                className={`w-full flex items-center justify-between gap-3 rounded-xl border px-4 py-3 transition-colors text-left ${
+                  usePoints
+                    ? "border-primary bg-primary/10"
+                    : "border-surface-border hover:border-primary/40"
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-amber-400 text-[20px]">loyalty</span>
+                  <span>
+                    <span className="block font-body text-sm text-text-primary">
+                      {t("checkout.usePoints")}
+                    </span>
+                    <span className="block font-body text-xs text-text-muted">
+                      {t("checkout.pointsAvailable", { points: points.toLocaleString() })}
+                    </span>
+                  </span>
+                </span>
+                <span
+                  className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${
+                    usePoints ? "bg-primary" : "bg-surface-border"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
+                      usePoints ? "translate-x-[22px]" : "translate-x-0.5"
+                    }`}
+                  />
+                </span>
+              </button>
+            )}
+
+            <div className="space-y-2 border-t border-surface-border pt-4">
+              {discount > 0 && (
+                <>
+                  <div className="flex items-center justify-between font-body text-sm">
+                    <span className="text-text-muted">{t("checkout.totalLabel")}</span>
+                    <span className="text-text-muted">{formatPrice(total)}</span>
+                  </div>
+                  <div className="flex items-center justify-between font-body text-sm">
+                    <span className="text-amber-400">{t("checkout.pointsDiscount")}</span>
+                    <span className="text-amber-400">{t("checkout.pointsOff", { amount: discount.toLocaleString() })}</span>
+                  </div>
+                </>
+              )}
+              <div className="flex items-center justify-between">
+                <span className="text-text-muted font-body">{t("checkout.totalLabel")}</span>
+                <span className="text-primary font-headline text-2xl">{formatPrice(payable)}</span>
+              </div>
             </div>
           </div>
 

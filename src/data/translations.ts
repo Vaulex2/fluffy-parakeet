@@ -381,6 +381,7 @@ const en = {
     browseMenu: "Browse the menu",
     prev: "← Prev",
     next: "Next →",
+    trackingReady: "Your order is ready!",
   },
   orderStatus: {
     pending: "Pending",
@@ -422,6 +423,16 @@ const en = {
     placeOrder: "Place Order",
     addressError: "Please enter a delivery address.",
     limitError: "Sorry, {item} is sold out for today. Please adjust your order.",
+    usePoints: "Use loyalty points",
+    pointsAvailable: "{points} points available",
+    pointsDiscount: "Points discount",
+    pointsOff: "−{amount} UZS",
+  },
+  favorites: {
+    add: "Add to favorites",
+    remove: "Remove from favorites",
+    title: "Favorites",
+    signInPrompt: "Sign in to save favorites",
   },
   cart: {
     yourOrder: "Your Order",
@@ -851,6 +862,7 @@ const uz = {
     browseMenu: "Menyuni ko'rish",
     prev: "← Oldingi",
     next: "Keyingi →",
+    trackingReady: "Buyurtmangiz tayyor!",
   },
   orderStatus: {
     pending: "Kutilmoqda",
@@ -892,6 +904,16 @@ const uz = {
     placeOrder: "Buyurtma berish",
     addressError: "Iltimos, yetkazib berish manzilini kiriting.",
     limitError: "Kechirasiz, {item} bugunga tugadi. Iltimos, buyurtmangizni o'zgartiring.",
+    usePoints: "Sodiqlik ballaridan foydalanish",
+    pointsAvailable: "{points} ball mavjud",
+    pointsDiscount: "Ballar chegirmasi",
+    pointsOff: "−{amount} UZS",
+  },
+  favorites: {
+    add: "Sevimlilarga qo'shish",
+    remove: "Sevimlilardan olib tashlash",
+    title: "Sevimlilar",
+    signInPrompt: "Sevimlilarni saqlash uchun tizimga kiring",
   },
   cart: {
     yourOrder: "Buyurtmangiz",
@@ -1320,6 +1342,7 @@ const ru = {
     browseMenu: "Открыть меню",
     prev: "← Назад",
     next: "Вперёд →",
+    trackingReady: "Ваш заказ готов!",
   },
   orderStatus: {
     pending: "Ожидает",
@@ -1361,6 +1384,16 @@ const ru = {
     placeOrder: "Оформить заказ",
     addressError: "Пожалуйста, укажите адрес доставки.",
     limitError: "Извините, «{item}» на сегодня закончилось. Измените, пожалуйста, заказ.",
+    usePoints: "Использовать баллы лояльности",
+    pointsAvailable: "Доступно {points} баллов",
+    pointsDiscount: "Скидка за баллы",
+    pointsOff: "−{amount} UZS",
+  },
+  favorites: {
+    add: "В избранное",
+    remove: "Убрать из избранного",
+    title: "Избранное",
+    signInPrompt: "Войдите, чтобы сохранять избранное",
   },
   cart: {
     yourOrder: "Ваш заказ",

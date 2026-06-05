@@ -138,8 +138,22 @@ export interface Order {
   customer_name: string | null;
   customer_phone: string | null;
   customer_email: string | null;
+  /** Loyalty points credited for this order (set once on delivery). */
+  points_earned: number;
+  /** Loyalty points spent on this order at checkout. */
+  points_redeemed: number;
+  /** UZS discount applied from redeemed points (1 pt = 1 UZS). */
+  discount_amount: number;
   created_at: string;
   updated_at: string;
+}
+
+// ── Favorites ─────────────────────────────────────────────
+
+export interface Favorite {
+  user_id: string;
+  menu_item_id: string;
+  created_at: string;
 }
 
 export interface OrderItem {
