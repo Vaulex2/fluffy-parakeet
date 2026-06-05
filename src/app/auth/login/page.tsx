@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { signIn } from "@/lib/actions/auth";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 function GoogleIcon() {
   return (
@@ -30,13 +31,12 @@ function GoogleIcon() {
 }
 
 function LoginForm() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/profile";
   const errorParam = searchParams.get("error");
   const [error, setError] = useState<string | null>(
-    errorParam === "suspended"
-      ? "Your account has been suspended. Please contact support."
-      : null
+    errorParam === "suspended" ? t("auth.suspended") : null
   );
   const [isPending, startTransition] = useTransition();
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -81,7 +81,7 @@ function LoginForm() {
           </span>
         </Link>
         <p className="mt-4 text-text-muted font-body text-sm">
-          Sign in to your account
+          {t("auth.signInSubtitle")}
         </p>
       </div>
 
@@ -94,19 +94,19 @@ function LoginForm() {
           className="w-full flex items-center justify-center gap-3 bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm hover:bg-surface-border/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-5"
         >
           <GoogleIcon />
-          {googleLoading ? "Redirecting…" : "Continue with Google"}
+          {googleLoading ? t("auth.redirecting") : t("auth.continueGoogle")}
         </button>
 
         <div className="flex items-center gap-3 mb-5">
           <div className="flex-1 h-px bg-surface-border" />
-          <span className="text-text-muted font-body text-xs uppercase tracking-widest">or</span>
+          <span className="text-text-muted font-body text-xs uppercase tracking-widest">{t("auth.or")}</span>
           <div className="flex-1 h-px bg-surface-border" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-text-muted text-xs font-body font-medium uppercase tracking-widest mb-2">
-              Email
+              {t("auth.email")}
             </label>
             <input
               type="email"
@@ -114,19 +114,19 @@ function LoginForm() {
               required
               autoComplete="email"
               className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
-              placeholder="you@example.com"
+              placeholder={t("auth.emailPlaceholder")}
             />
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-text-muted text-xs font-body font-medium uppercase tracking-widest">
-                Password
+                {t("auth.password")}
               </label>
               <Link
                 href="/auth/forgot-password"
                 className="text-xs font-body text-text-muted hover:text-primary transition-colors"
               >
-                Forgot password?
+                {t("auth.forgotPassword")}
               </Link>
             </div>
             <input
@@ -135,7 +135,7 @@ function LoginForm() {
               required
               autoComplete="current-password"
               className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
-              placeholder="••••••••"
+              placeholder={t("auth.passwordPlaceholder")}
             />
           </div>
 
@@ -150,20 +150,20 @@ function LoginForm() {
             disabled={isPending || googleLoading}
             className="w-full bg-primary text-white font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isPending ? "Signing in…" : "Sign In"}
+            {isPending ? t("auth.signingIn") : t("auth.signIn")}
           </button>
         </form>
       </div>
 
       <p className="text-center mt-6 text-text-muted font-body text-sm">
-        Don&apos;t have an account?{" "}
+        {t("auth.noAccount")}{" "}
         <Link href="/auth/signup" className="text-primary hover:underline font-medium">
-          Create one
+          {t("auth.createOne")}
         </Link>
       </p>
       <p className="text-center mt-3 text-text-muted font-body text-xs">
         <Link href="/" className="hover:text-text-primary transition-colors">
-          ← Back to restaurant
+          {t("auth.backToRestaurant")}
         </Link>
       </p>
     </div>

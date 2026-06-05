@@ -1,8 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
-import { aboutFeatures } from "@/data/mockData";
+import { getT } from "@/lib/i18n/server";
 
 export default function AboutSection() {
+  const { t } = getT();
+  const aboutFeatures = [
+    { icon: "restaurant_menu", title: t("home.featMasterChefsTitle"), description: t("home.featMasterChefsDesc") },
+    { icon: "set_meal", title: t("home.featFreshCatchTitle"), description: t("home.featFreshCatchDesc") },
+    { icon: "storefront", title: t("home.featAtmosphereTitle"), description: t("home.featAtmosphereDesc") },
+    { icon: "delivery_dining", title: t("home.featFastDeliveryTitle"), description: t("home.featFastDeliveryDesc") },
+  ];
   return (
     <section
       id="about"
@@ -27,7 +34,7 @@ export default function AboutSection() {
           {/* Badge */}
           <div className="absolute -bottom-8 -right-8 bg-background p-6 rounded-full border-4 border-light-bg shadow-2xl flex flex-col items-center justify-center w-32 h-32 rotate-12">
             <span className="font-accent text-primary text-xl leading-none mb-1">
-              Since
+              {t("home.aboutSince")}
             </span>
             <span className="font-headline text-white text-3xl leading-none tracking-tight">
               2019
@@ -38,22 +45,19 @@ export default function AboutSection() {
         {/* Right: content */}
         <div className="space-y-8 lg:pl-12">
           <h2 className="font-headline text-[clamp(3.5rem,6vw,5.5rem)] leading-[0.9] tracking-tighter uppercase text-light-text">
-            BORN FROM A
+            {t("home.aboutTitle1")}
             <br />
-            <span className="text-primary">LOVE OF JAPAN</span>
+            <span className="text-primary">{t("home.aboutTitle2")}</span>
           </h2>
           <p className="font-body text-lg text-light-text/80 leading-relaxed max-w-xl">
-            At Sushi GO, we believe that authentic sushi is an art form. Our
-            master chefs bring decades of experience from the finest kitchens,
-            ensuring every slice, roll, and bowl tells a story of tradition and
-            quality right here in Namangan.
+            {t("home.aboutBody")}
           </p>
 
           <Link
             href="/about"
             className="inline-flex items-center gap-2 font-headline text-light-text text-lg tracking-tight underline-reveal hover:text-primary transition-colors"
           >
-            Learn more about us
+            {t("home.aboutLearnMore")}
             <span className="material-symbols-outlined text-sm">
               arrow_forward
             </span>

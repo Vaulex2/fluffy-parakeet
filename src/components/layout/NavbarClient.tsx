@@ -1,20 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { signOut } from "@/lib/actions/auth";
-import { navLinks } from "@/data/mockData";
 import NavHeader from "@/components/ui/nav-header";
 import { useCart } from "@/components/cart/CartContext";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { EXPO } from "@/components/ui/Reveal";
+import type { TranslationKey } from "@/lib/i18n";
 import type { Profile } from "@/types/database";
 import type { User } from "@supabase/supabase-js";
+
+const NAV_ITEMS: { tKey: TranslationKey; href: string }[] = [
+  { tKey: "nav.menu", href: "/menu" },
+  { tKey: "nav.about", href: "/about" },
+  { tKey: "nav.reservations", href: "/reservations" },
+  { tKey: "nav.contact", href: "#contact" },
+];
 
 // Cart icon with a live count badge that "pops" when an item lands (fly-to-cart
 // dispatches "sushigo:cart-pop"). Doubles as the fly target via #cart-fly-target.
 function CartButton() {
   const { count } = useCart();
+  const { t } = useLanguage();
   const [pop, setPop] = useState(0);
 
   useEffect(() => {
@@ -27,7 +38,7 @@ function CartButton() {
     <Link
       href="/menu"
       id="cart-fly-target"
-      aria-label={`Cart${count > 0 ? `, ${count} item${count === 1 ? "" : "s"}` : ""}`}
+      aria-label={`${t("nav.cart")}${count > 0 ? `, ${count}` : ""}`}
       className="text-text-primary hover:text-primary transition-colors relative hover:-translate-y-0.5 hover:transition-transform duration-300"
     >
       <motion.span
@@ -70,11 +81,19 @@ function LoyaltyChip({ points }: { points: number }) {
 }
 
 export default function NavbarClient({ user, profile }: NavbarClientProps) {
+  const { t } = useLanguage();
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   async function handleSignOut() {
     await signOut();
   }
+
+  const navLinks = NAV_ITEMS.map((item) => ({
+    label: t(item.tKey),
+    href: item.href,
+    active: item.href.startsWith("/") && pathname.startsWith(item.href),
+  }));
 
   return (
     <header className="fixed top-0 w-full z-50 bg-[#0B0B0B]/85 backdrop-blur-xl border-b border-[rgba(244,236,216,0.10)] shadow-xl shadow-red-900/10">
@@ -100,6 +119,10 @@ export default function NavbarClient({ user, profile }: NavbarClientProps) {
         {/* Actions */}
         <div className="flex items-center gap-4 md:gap-6">
           <CartButton />
+
+          <div className="hidden md:block">
+            <LanguageSwitcher />
+          </div>
 
           {user ? (
             /* Authenticated: avatar + dropdown */
@@ -156,7 +179,7 @@ export default function NavbarClient({ user, profile }: NavbarClientProps) {
                       className="flex items-center gap-2.5 px-4 py-2.5 text-text-muted hover:text-text-primary hover:bg-background font-body text-sm transition-colors"
                     >
                       <span className="material-symbols-outlined text-[16px]">person</span>
-                      Profile
+                      {t("nav.profile")}
                     </Link>
                     <Link
                       href="/orders"
@@ -164,7 +187,7 @@ export default function NavbarClient({ user, profile }: NavbarClientProps) {
                       className="flex items-center gap-2.5 px-4 py-2.5 text-text-muted hover:text-text-primary hover:bg-background font-body text-sm transition-colors"
                     >
                       <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
-                      My Orders
+                      {t("nav.myOrders")}
                     </Link>
                     <div className="border-t border-surface-border mt-1" />
                     <button
@@ -172,7 +195,7 @@ export default function NavbarClient({ user, profile }: NavbarClientProps) {
                       className="flex items-center gap-2.5 w-full px-4 py-2.5 text-primary hover:bg-primary/10 font-body text-sm transition-colors"
                     >
                       <span className="material-symbols-outlined text-[16px]">logout</span>
-                      Sign Out
+                      {t("nav.signOut")}
                     </button>
                   </div>
                 </>
@@ -184,7 +207,7 @@ export default function NavbarClient({ user, profile }: NavbarClientProps) {
               href="/auth/login"
               className="hidden md:block bg-primary text-white font-headline tracking-tight px-6 py-2.5 rounded hover:bg-red-700 btn-hover-lift"
             >
-              Sign In
+              {t("nav.signIn")}
             </Link>
           )}
 
@@ -192,7 +215,7 @@ export default function NavbarClient({ user, profile }: NavbarClientProps) {
           <button
             className="md:hidden text-text-primary"
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
+            aria-label={t("nav.toggleMenu")}
           >
             <span className="material-symbols-outlined text-3xl">
               {mobileOpen ? "close" : "menu"}
@@ -224,20 +247,20 @@ export default function NavbarClient({ user, profile }: NavbarClientProps) {
                   className="py-2 text-text-primary hover:text-primary"
                   onClick={() => setMobileOpen(false)}
                 >
-                  Profile
+                  {t("nav.profile")}
                 </Link>
                 <Link
                   href="/orders"
                   className="py-2 text-text-primary hover:text-primary"
                   onClick={() => setMobileOpen(false)}
                 >
-                  My Orders
+                  {t("nav.myOrders")}
                 </Link>
                 <button
                   onClick={() => { setMobileOpen(false); handleSignOut(); }}
                   className="mt-2 bg-primary/10 text-primary font-headline text-center px-6 py-3 rounded tracking-tight w-full"
                 >
-                  Sign Out
+                  {t("nav.signOut")}
                 </button>
               </>
             ) : (
@@ -246,9 +269,17 @@ export default function NavbarClient({ user, profile }: NavbarClientProps) {
                 className="mt-2 bg-primary text-white font-headline text-center px-6 py-3 rounded tracking-tight"
                 onClick={() => setMobileOpen(false)}
               >
-                Sign In
+                {t("nav.signIn")}
               </Link>
             )}
+
+            {/* Language */}
+            <div className="mt-3 pt-3 border-t border-surface-border">
+              <p className="text-text-muted text-xs font-body font-medium uppercase tracking-widest mb-2">
+                {t("nav.language")}
+              </p>
+              <LanguageSwitcher variant="inline" onSelect={() => setMobileOpen(false)} />
+            </div>
           </nav>
         </div>
       )}

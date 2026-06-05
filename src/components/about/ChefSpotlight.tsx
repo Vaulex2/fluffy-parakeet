@@ -4,8 +4,10 @@ import { useRef } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Reveal from "@/components/ui/Reveal";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 export default function ChefSpotlight() {
+  const { t } = useLanguage();
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -49,10 +51,10 @@ export default function ChefSpotlight() {
           {/* Name plate */}
           <div className="absolute -bottom-6 right-6 bg-background px-6 py-4 rounded-lg border border-surface-border shadow-2xl">
             <p className="font-accent text-primary text-lg leading-none mb-1">
-              Head Chef
+              {t("about.chefHeadChef")}
             </p>
             <p className="font-headline text-white text-2xl leading-none tracking-tight">
-              Kenji Sato
+              {t("about.chefName")}
             </p>
           </div>
         </Reveal>
@@ -60,23 +62,18 @@ export default function ChefSpotlight() {
         {/* Bio */}
         <Reveal delay={0.12} className="space-y-6 order-1 lg:order-2">
           <span className="font-accent text-primary text-2xl block">
-            Meet the chef
+            {t("about.chefTagline")}
           </span>
           <h2 className="font-headline text-[clamp(2.75rem,5vw,4.5rem)] leading-[0.95] tracking-tighter uppercase text-light-text">
-            CRAFTED WITH
+            {t("about.chefTitle1")}
             <br />
-            <span className="text-primary">PASSION</span>
+            <span className="text-primary">{t("about.chefTitle2")}</span>
           </h2>
           <p className="font-body text-lg text-light-text/80 leading-relaxed max-w-xl">
-            SushiGO is led by our head chef, Kenji Sato, whose passion for
-            traditional Japanese cuisine is reflected in every detail. From the
-            first slice to the final garnish, Kenji brings a reverence for craft
-            and a modern eye to everything that leaves his kitchen.
+            {t("about.chefBio1")}
           </p>
           <p className="font-body text-lg text-light-text/80 leading-relaxed max-w-xl">
-            His carefully crafted menu features signature creations such as the
-            Volcano Roll, Black Garlic Ramen, and his personal favorite — the
-            Truffle Salmon Nigiri, a modern twist on classic sushi flavors.
+            {t("about.chefBio2")}
           </p>
         </Reveal>
       </div>

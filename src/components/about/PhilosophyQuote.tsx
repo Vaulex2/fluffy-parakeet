@@ -1,6 +1,8 @@
 import Reveal from "@/components/ui/Reveal";
+import { getT } from "@/lib/i18n/server";
 
 export default function PhilosophyQuote() {
+  const { t } = getT();
   return (
     <section className="relative overflow-hidden py-28 md:py-36">
       {/* Contained radial glow */}
@@ -16,10 +18,10 @@ export default function PhilosophyQuote() {
 
       <Reveal className="relative z-10 max-w-4xl mx-auto px-6 md:px-12 text-center">
         <p className="font-accent text-primary text-[clamp(2.5rem,6vw,5rem)] leading-[1.05]">
-          “Itadakimasu — we eat with gratitude.”
+          {t("about.philosophyQuote")}
         </p>
         <p className="font-body text-text-muted text-base md:text-lg mt-6 tracking-wide">
-          The spirit behind every plate we serve at SushiGO.
+          {t("about.philosophySub")}
         </p>
       </Reveal>
     </section>

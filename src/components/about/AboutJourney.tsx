@@ -1,18 +1,26 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import { aboutMilestones } from "@/data/mockData";
+import { getT } from "@/lib/i18n/server";
 
 export default function AboutJourney() {
+  const { t } = getT();
+  const milestones = [
+    { year: t("about.m1Year"), title: t("about.m1Title"), description: t("about.m1Desc"), image: aboutMilestones[0].image, imageAlt: t("about.m1Alt") },
+    { year: t("about.m2Year"), title: t("about.m2Title"), description: t("about.m2Desc"), image: aboutMilestones[1].image, imageAlt: t("about.m2Alt") },
+    { year: t("about.m3Year"), title: t("about.m3Title"), description: t("about.m3Desc"), image: aboutMilestones[2].image, imageAlt: t("about.m3Alt") },
+    { year: t("about.m4Year"), title: t("about.m4Title"), description: t("about.m4Desc"), image: aboutMilestones[3].image, imageAlt: t("about.m4Alt") },
+  ];
   return (
     <section className="relative max-w-7xl mx-auto px-6 md:px-12 py-20">
       <Reveal className="max-w-2xl mb-16">
         <span className="font-accent text-primary text-2xl block mb-2">
-          Our Journey
+          {t("about.journeyTagline")}
         </span>
         <h2 className="font-headline text-[clamp(2.5rem,5vw,4rem)] leading-[0.95] tracking-tighter uppercase text-text-primary">
-          FROM NAMANGAN
+          {t("about.journeyTitle1")}
           <br />
-          <span className="text-primary">TO YOUR TABLE</span>
+          <span className="text-primary">{t("about.journeyTitle2")}</span>
         </h2>
       </Reveal>
 
@@ -23,7 +31,7 @@ export default function AboutJourney() {
         </div>
 
         <ol className="space-y-16 lg:space-y-0">
-          {aboutMilestones.map((m, i) => {
+          {milestones.map((m, i) => {
             const textLeft = i % 2 === 0;
             return (
               <li

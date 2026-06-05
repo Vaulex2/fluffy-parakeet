@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 import type { MenuItem } from "@/data/mockData";
 
 const SLIDE_MS = 3000;
@@ -14,6 +15,7 @@ interface SpotlightRotatorProps {
 }
 
 export default function SpotlightRotator({ dishes }: SpotlightRotatorProps) {
+  const { t } = useLanguage();
   const [active, setActive] = useState(0);
   // Bumped on every transition so the timer bar restarts even when the same
   // index is re-selected.
@@ -105,7 +107,7 @@ export default function SpotlightRotator({ dishes }: SpotlightRotatorProps) {
               transition={{ duration: reduceMotion ? 0 : 0.5, ease: EXPO }}
             >
               <p className="font-accent text-primary text-2xl mb-2">
-                Chef&apos;s Spotlight
+                {t("home.chefSpotlight")}
               </p>
               <h3 className="font-headline text-5xl md:text-6xl tracking-tighter uppercase text-white mb-4">
                 {dish.name}
@@ -122,7 +124,7 @@ export default function SpotlightRotator({ dishes }: SpotlightRotatorProps) {
                 href="/menu"
                 className="inline-flex items-center gap-2 bg-primary text-white px-8 py-3 rounded font-headline tracking-wide btn-hover-lift"
               >
-                ORDER NOW
+                {t("home.orderNow")}
                 <span className="material-symbols-outlined text-sm">
                   arrow_forward
                 </span>

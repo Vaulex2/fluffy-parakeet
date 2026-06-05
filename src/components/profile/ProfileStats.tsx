@@ -1,3 +1,5 @@
+import { getT } from "@/lib/i18n/server";
+
 interface Stat {
   icon: string;
   value: number | string;
@@ -27,11 +29,12 @@ export default function ProfileStats({
   upcomingCount: number;
   totalBookings: number;
 }) {
+  const { t } = getT();
   return (
     <div className="grid grid-cols-3 gap-3">
-      <StatTile icon="loyalty" value={points.toLocaleString()} label="Points" />
-      <StatTile icon="event_upcoming" value={upcomingCount} label="Upcoming" />
-      <StatTile icon="restaurant" value={totalBookings} label="Bookings" />
+      <StatTile icon="loyalty" value={points.toLocaleString()} label={t("profile.statPoints")} />
+      <StatTile icon="event_upcoming" value={upcomingCount} label={t("profile.statUpcoming")} />
+      <StatTile icon="restaurant" value={totalBookings} label={t("profile.statBookings")} />
     </div>
   );
 }

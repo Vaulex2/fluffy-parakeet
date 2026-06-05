@@ -1,6 +1,11 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  LANG_COOKIE,
+  LANG_COOKIE_MAX_AGE,
+  DEFAULT_LOCALE,
+} from "@/lib/i18n/config";
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -73,6 +78,17 @@ export async function middleware(request: NextRequest) {
     const uiRole = request.cookies.get("sgo-role")?.value;
     const dest = uiRole === "admin" ? "/admin" : "/profile";
     return NextResponse.redirect(new URL(dest, request.url));
+  }
+
+  // Ensure an explicit locale cookie exists so SSR and client agree from the
+  // very first request (anonymous visitors default to Uzbek).
+  if (!request.cookies.get(LANG_COOKIE)) {
+    supabaseResponse.cookies.set(LANG_COOKIE, DEFAULT_LOCALE, {
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: LANG_COOKIE_MAX_AGE,
+      path: "/",
+    });
   }
 
   return supabaseResponse;

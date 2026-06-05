@@ -12,6 +12,10 @@ export type TableType = 'indoor' | 'outdoor' | 'vip' | 'bar';
 export interface MenuCategory {
   id: string;
   name: string;
+  // Localized names (nullable — fall back to `name` when empty). See localizedField().
+  name_uz: string | null;
+  name_ru: string | null;
+  name_en: string | null;
   slug: string;
   description: string | null;
   image_url: string | null;
@@ -24,6 +28,13 @@ export interface MenuItem {
   id: string;
   category_id: string | null;
   name: string;
+  // Localized fields (nullable — fall back to base name/description). See localizedField().
+  name_uz: string | null;
+  name_ru: string | null;
+  name_en: string | null;
+  description_uz: string | null;
+  description_ru: string | null;
+  description_en: string | null;
   description: string | null;
   price: number;
   calories: number | null;
@@ -165,6 +176,9 @@ export type InsertMenuItem = Omit<MenuItem, 'id' | 'created_at' | 'updated_at'>;
 export type InsertMenuCategory = Pick<MenuCategory, 'name' | 'slug' | 'sort_order'> & {
   description?: string | null;
   image_url?: string | null;
+  name_uz?: string | null;
+  name_ru?: string | null;
+  name_en?: string | null;
 };
 export type InsertRestaurantTable = Omit<RestaurantTable, 'id' | 'created_at'>;
 

@@ -3,8 +3,10 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { forgotPassword } from "@/lib/actions/auth";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 export default function ForgotPasswordPage() {
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -33,17 +35,17 @@ export default function ForgotPasswordPage() {
           </div>
           <div>
             <h2 className="font-headline text-3xl tracking-tight text-text-primary mb-2">
-              Check your email
+              {t("auth.checkEmail")}
             </h2>
             <p className="text-text-muted font-body text-sm leading-relaxed">
-              If an account exists for that email, we&apos;ve sent a password reset link. It expires in 1 hour.
+              {t("auth.resetSent")}
             </p>
           </div>
           <Link
             href="/auth/login"
             className="inline-block text-primary hover:underline font-body text-sm"
           >
-            Back to sign in
+            {t("auth.backToSignIn")}
           </Link>
         </div>
       </div>
@@ -64,18 +66,18 @@ export default function ForgotPasswordPage() {
             </span>
           </Link>
           <p className="mt-4 text-text-muted font-body text-sm">
-            Reset your password
+            {t("auth.resetSubtitle")}
           </p>
         </div>
 
         <div className="bg-surface border border-surface-border rounded-2xl p-8">
           <p className="text-text-muted font-body text-sm mb-6">
-            Enter the email address associated with your account and we&apos;ll send you a link to reset your password.
+            {t("auth.forgotIntro")}
           </p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-text-muted text-xs font-body font-medium uppercase tracking-widest mb-2">
-                Email
+                {t("auth.email")}
               </label>
               <input
                 type="email"
@@ -83,7 +85,7 @@ export default function ForgotPasswordPage() {
                 required
                 autoComplete="email"
                 className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
-                placeholder="you@example.com"
+                placeholder={t("auth.emailPlaceholder")}
               />
             </div>
 
@@ -98,14 +100,14 @@ export default function ForgotPasswordPage() {
               disabled={isPending}
               className="w-full bg-primary text-white font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isPending ? "Sending…" : "Send Reset Link"}
+              {isPending ? t("auth.sending") : t("auth.sendResetLink")}
             </button>
           </form>
         </div>
 
         <p className="text-center mt-6 text-text-muted font-body text-sm">
           <Link href="/auth/login" className="hover:text-text-primary transition-colors">
-            ← Back to sign in
+            {t("auth.backToSignIn")}
           </Link>
         </p>
       </div>

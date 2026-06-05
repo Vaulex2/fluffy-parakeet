@@ -15,9 +15,18 @@ import {
   formatTime12,
   isSlotPast,
 } from "@/components/reservation/ReservationForm";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { INTL_LOCALE } from "@/lib/i18n/config";
+import type { TranslationKey } from "@/lib/i18n";
 import type { ReservationWithTable, RestaurantTable } from "@/types/database";
 
 type Mode = "view" | "reschedule" | "cancelled" | "rescheduled";
+
+const DURATION_KEY: Record<number, TranslationKey> = {
+  60: "reservations.duration1h",
+  90: "reservations.duration15h",
+  120: "reservations.duration2h",
+};
 
 function durationFromTimes(start: string, end: string): number {
   const [sh, sm] = start.slice(0, 5).split(":").map(Number);
@@ -30,6 +39,11 @@ export default function ManageReservation({
 }: {
   reservation: ReservationWithTable;
 }) {
+  const { locale, t } = useLanguage();
+  const intlTag = INTL_LOCALE[locale];
+  const guestUnit = (n: number) =>
+    t(n === 1 ? "reservations.person" : "reservations.people");
+  const statusLabel = t(`status.${reservation.status}` as TranslationKey);
   const alreadyClosed = ["cancelled", "completed", "no_show"].includes(reservation.status);
 
   const [mode, setMode] = useState<Mode>("view");
@@ -55,7 +69,7 @@ export default function ManageReservation({
   }, [date, time]);
 
   // display helpers
-  const dateLabel = new Date(reservation.reservation_date + "T00:00:00").toLocaleDateString("en-US", {
+  const dateLabel = new Date(reservation.reservation_date + "T00:00:00").toLocaleDateString(intlTag, {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -66,12 +80,12 @@ export default function ManageReservation({
   )}`;
 
   function handleCancel() {
-    if (!confirm("Cancel this reservation? This cannot be undone.")) return;
+    if (!confirm(t("manage.cancelConfirm"))) return;
     setError(null);
     startTransition(async () => {
       const res = await cancelReservationByToken(reservation.manage_token);
       if (res.success) setMode("cancelled");
-      else setError("We couldn't cancel this reservation. Please call us at +998 90 123 45 67.");
+      else setError(t("manage.cancelError"));
     });
   }
 
@@ -99,8 +113,8 @@ export default function ManageReservation({
       );
       if (res.success) setMode("rescheduled");
       else if (res.error === "slot_taken")
-        setError("That table was just taken. Pick another table or time.");
-      else setError("Something went wrong. Please try again or call us.");
+        setError(t("manage.rescheduleSlotTaken"));
+      else setError(t("manage.rescheduleError"));
     });
   }
 
@@ -108,9 +122,9 @@ export default function ManageReservation({
   if (mode === "cancelled") {
     return (
       <Card>
-        <Banner icon="cancel" tone="muted" title="Reservation cancelled" />
+        <Banner icon="cancel" tone="muted" title={t("manage.cancelledTitle")} />
         <p className="text-text-muted font-body text-sm text-center">
-          Your table has been released. We hope to see you another time!
+          {t("manage.cancelledBody")}
         </p>
       </Card>
     );
@@ -119,11 +133,11 @@ export default function ManageReservation({
   if (mode === "rescheduled") {
     return (
       <Card>
-        <Banner icon="check_circle" tone="green" title="Reservation updated" />
+        <Banner icon="check_circle" tone="green" title={t("manage.updatedTitle")} />
         <div className="bg-surface border border-surface-border rounded-2xl p-6 text-left space-y-3">
-          <Detail label="Date" value={new Date(date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })} />
-          <Detail label="Time" value={`${formatTime12(time)} — ${formatTime12(addMinutesToTime(time, durationMinutes).slice(0, 5))}`} />
-          <Detail label="Table" value={`Table ${selectedTable?.table_number}`} />
+          <Detail label={t("reservations.detailDate")} value={new Date(date + "T00:00:00").toLocaleDateString(intlTag, { weekday: "long", month: "long", day: "numeric" })} />
+          <Detail label={t("reservations.detailTime")} value={`${formatTime12(time)} — ${formatTime12(addMinutesToTime(time, durationMinutes).slice(0, 5))}`} />
+          <Detail label={t("reservations.detailTable")} value={t("reservations.tableLabel", { number: selectedTable?.table_number ?? "" })} />
         </div>
       </Card>
     );
@@ -137,15 +151,15 @@ export default function ManageReservation({
           onClick={() => { setMode("view"); setAvailableTables(null); }}
           className="text-text-muted hover:text-text-primary font-body text-sm flex items-center gap-1 transition-colors"
         >
-          <span className="material-symbols-outlined text-base">arrow_back</span> Back
+          <span className="material-symbols-outlined text-base">arrow_back</span> {t("reservations.back")}
         </button>
-        <h2 className="font-headline text-2xl tracking-tight text-text-primary">Change date &amp; time</h2>
+        <h2 className="font-headline text-2xl tracking-tight text-text-primary">{t("manage.changeTitle")}</h2>
 
-        <Field label="Date">
+        <Field label={t("reservations.fieldDate")}>
           <CalendarPicker value={date} min={today} onChange={(v) => { setDate(v); setAvailableTables(null); }} />
         </Field>
 
-        <Field label="Time">
+        <Field label={t("reservations.fieldTime")}>
           <div className="grid grid-cols-4 gap-2">
             {TIME_SLOTS.map((t) => {
               const past = isSlotPast(t, date);
@@ -169,7 +183,7 @@ export default function ManageReservation({
           </div>
         </Field>
 
-        <Field label="Duration">
+        <Field label={t("reservations.fieldDuration")}>
           <div className="flex gap-3">
             {DURATIONS.map((d) => (
               <button
@@ -181,7 +195,7 @@ export default function ManageReservation({
                     : "border-surface-border text-text-muted hover:border-primary/60"
                 }`}
               >
-                {d.label}
+                {t(DURATION_KEY[d.minutes])}
               </button>
             ))}
           </div>
@@ -193,11 +207,11 @@ export default function ManageReservation({
             disabled={isPending || !time}
             className="w-full bg-primary text-white font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {isPending ? "Checking…" : "Check Availability →"}
+            {isPending ? t("manage.checking") : t("reservations.checkAvailability")}
           </button>
         ) : availableTables.length === 0 ? (
           <p className="text-center text-text-muted font-body text-sm py-4">
-            No tables available for {reservation.guest_count} guests at this time. Try another slot.
+            {t("manage.noTablesForGuests", { count: reservation.guest_count })}
           </p>
         ) : (
           <div className="grid gap-3">
@@ -215,9 +229,9 @@ export default function ManageReservation({
                   {table.table_number}
                 </div>
                 <div>
-                  <p className="text-text-primary font-body text-sm font-medium">Table {table.table_number}</p>
+                  <p className="text-text-primary font-body text-sm font-medium">{t("reservations.tableLabel", { number: table.table_number })}</p>
                   <p className="text-text-muted font-body text-xs">
-                    Up to {table.seat_count} guests{table.description ? ` · ${table.description}` : ""}
+                    {t("reservations.upToGuests", { count: table.seat_count })}{table.description ? ` · ${table.description}` : ""}
                   </p>
                 </div>
                 {selectedTable?.id === table.id && (
@@ -236,7 +250,7 @@ export default function ManageReservation({
             disabled={!selectedTable || isPending}
             className="w-full bg-primary text-white font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40"
           >
-            {isPending ? "Saving…" : "Confirm Change"}
+            {isPending ? t("manage.saving") : t("manage.confirmChange")}
           </button>
         )}
       </Card>
@@ -247,24 +261,24 @@ export default function ManageReservation({
   return (
     <Card>
       <p className="text-text-muted font-body text-sm text-center">
-        Booking #{reservation.id.slice(0, 8).toUpperCase()}
+        {t("reservations.bookingNumber", { id: reservation.id.slice(0, 8).toUpperCase() })}
       </p>
       <div className="bg-surface border border-surface-border rounded-2xl p-6 text-left space-y-3">
-        <Detail label="Name" value={reservation.guest_name} />
-        <Detail label="Date" value={dateLabel} />
-        <Detail label="Time" value={timeLabel} />
-        <Detail label="Guests" value={`${reservation.guest_count} ${reservation.guest_count === 1 ? "person" : "people"}`} />
+        <Detail label={t("reservations.detailName")} value={reservation.guest_name} />
+        <Detail label={t("reservations.detailDate")} value={dateLabel} />
+        <Detail label={t("reservations.detailTime")} value={timeLabel} />
+        <Detail label={t("reservations.detailGuests")} value={t("reservations.guestsValue", { count: reservation.guest_count, unit: guestUnit(reservation.guest_count) })} />
         {reservation.restaurant_tables && (
-          <Detail label="Table" value={`Table ${reservation.restaurant_tables.table_number}`} />
+          <Detail label={t("reservations.detailTable")} value={t("reservations.tableLabel", { number: reservation.restaurant_tables.table_number })} />
         )}
-        <Detail label="Status" value={reservation.status} />
+        <Detail label={t("manage.detailStatus")} value={statusLabel} />
       </div>
 
       {error && <ErrorNote>{error}</ErrorNote>}
 
       {alreadyClosed ? (
         <p className="text-text-muted font-body text-sm text-center">
-          This reservation is {reservation.status.replace("_", " ")} and can no longer be changed.
+          {t("manage.closedNotice", { status: statusLabel.toLowerCase() })}
         </p>
       ) : (
         <div className="grid sm:grid-cols-2 gap-3">
@@ -273,14 +287,14 @@ export default function ManageReservation({
             disabled={isPending}
             className="w-full border border-surface-border text-text-primary font-headline tracking-tight text-base py-3 rounded-xl hover:border-primary transition-colors disabled:opacity-40"
           >
-            Change date/time
+            {t("reservations.changeDateTime")}
           </button>
           <button
             onClick={handleCancel}
             disabled={isPending}
             className="w-full bg-primary text-white font-headline tracking-tight text-base py-3 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40"
           >
-            {isPending ? "Cancelling…" : "Cancel reservation"}
+            {isPending ? t("manage.cancelling") : t("manage.cancelReservation")}
           </button>
         </div>
       )}

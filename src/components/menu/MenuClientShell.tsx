@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import MenuGrid from "./MenuGrid";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { localizedField } from "@/lib/i18n";
 import type { MenuCategory, MenuItemWithCategory } from "@/types/database";
 
 interface MenuClientShellProps {
@@ -10,6 +12,7 @@ interface MenuClientShellProps {
 }
 
 export default function MenuClientShell({ items, categories }: MenuClientShellProps) {
+  const { locale, t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showPopular, setShowPopular] = useState(false);
@@ -21,8 +24,8 @@ export default function MenuClientShell({ items, categories }: MenuClientShellPr
     (item) =>
       (!activeCategory || item.category_id === activeCategory) &&
       (!q ||
-        item.name.toLowerCase().includes(q) ||
-        (item.description?.toLowerCase().includes(q) ?? false)) &&
+        localizedField(item, "name", locale).toLowerCase().includes(q) ||
+        localizedField(item, "description", locale).toLowerCase().includes(q)) &&
       (!showPopular || item.is_popular) &&
       (!showFeatured || item.is_featured)
   );
@@ -54,7 +57,7 @@ export default function MenuClientShell({ items, categories }: MenuClientShellPr
               onClick={() => setActiveCategory(null)}
               className={`${pillBase} ${activeCategory === null ? pillActive : pillInactive}`}
             >
-              All
+              {t("menu.filterAll")}
             </button>
             {categories.map((cat) => (
               <button
@@ -66,7 +69,7 @@ export default function MenuClientShell({ items, categories }: MenuClientShellPr
                   activeCategory === cat.id ? pillActive : pillInactive
                 }`}
               >
-                {cat.name}
+                {localizedField(cat, "name", locale)}
               </button>
             ))}
           </div>
@@ -78,7 +81,7 @@ export default function MenuClientShell({ items, categories }: MenuClientShellPr
             </span>
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={t("menu.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-surface border border-surface-border rounded-full pl-9 pr-4 py-1.5 text-sm font-body text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary/60 transition-colors"
@@ -94,7 +97,7 @@ export default function MenuClientShell({ items, categories }: MenuClientShellPr
                   ? "bg-surface text-text-primary"
                   : "text-text-muted hover:text-text-primary"
               }`}
-              aria-label="Grid view"
+              aria-label={t("menu.gridView")}
             >
               <span className="material-symbols-outlined text-[18px]">grid_view</span>
             </button>
@@ -105,7 +108,7 @@ export default function MenuClientShell({ items, categories }: MenuClientShellPr
                   ? "bg-surface text-text-primary"
                   : "text-text-muted hover:text-text-primary"
               }`}
-              aria-label="List view"
+              aria-label={t("menu.listView")}
             >
               <span className="material-symbols-outlined text-[18px]">view_agenda</span>
             </button>
@@ -124,7 +127,7 @@ export default function MenuClientShell({ items, categories }: MenuClientShellPr
               <span className="material-symbols-outlined text-[14px]">
                 local_fire_department
               </span>
-              Popular
+              {t("menu.popular")}
             </button>
             <button
               onClick={() => setShowFeatured((v) => !v)}
@@ -133,12 +136,15 @@ export default function MenuClientShell({ items, categories }: MenuClientShellPr
               }`}
             >
               <span className="material-symbols-outlined text-[14px]">star</span>
-              Featured
+              {t("menu.featured")}
             </button>
           </div>
 
           <span className="text-text-muted font-body text-xs">
-            Showing {filtered.length} {filtered.length === 1 ? "item" : "items"}
+            {t("menu.showing", {
+              count: filtered.length,
+              unit: t(filtered.length === 1 ? "menu.unitItem" : "menu.unitItems"),
+            })}
           </span>
         </div>
       </div>

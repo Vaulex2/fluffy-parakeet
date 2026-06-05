@@ -5,6 +5,7 @@ import NavbarSkeleton from "@/components/layout/NavbarSkeleton";
 import Footer from "@/components/layout/Footer";
 import ManageReservation from "@/components/reservation/ManageReservation";
 import { getReservationByToken } from "@/lib/actions/reservations";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata = {
   title: "Manage Reservation | SushiGO",
@@ -18,6 +19,7 @@ export default async function ManageReservationPage({
 }) {
   const reservation = await getReservationByToken(params.token);
   if (!reservation) notFound();
+  const { t } = getT();
 
   return (
     <>
@@ -30,10 +32,10 @@ export default async function ManageReservationPage({
           <div className="max-w-2xl mx-auto">
             <div className="mb-10 text-center">
               <p className="text-primary font-body text-sm uppercase tracking-widest mb-3">
-                Your Booking
+                {t("manage.pageTagline")}
               </p>
               <h1 className="font-headline text-5xl md:text-6xl tracking-tighter text-text-primary leading-none mb-4">
-                Manage Reservation
+                {t("manage.pageTitle")}
               </h1>
             </div>
             <ManageReservation reservation={reservation} />

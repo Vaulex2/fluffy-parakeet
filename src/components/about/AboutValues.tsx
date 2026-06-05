@@ -1,7 +1,14 @@
 import Reveal from "@/components/ui/Reveal";
-import { aboutFeatures } from "@/data/mockData";
+import { getT } from "@/lib/i18n/server";
 
 export default function AboutValues() {
+  const { t } = getT();
+  const aboutFeatures = [
+    { icon: "restaurant_menu", title: t("home.featMasterChefsTitle"), description: t("home.featMasterChefsDesc") },
+    { icon: "set_meal", title: t("home.featFreshCatchTitle"), description: t("home.featFreshCatchDesc") },
+    { icon: "storefront", title: t("home.featAtmosphereTitle"), description: t("home.featAtmosphereDesc") },
+    { icon: "delivery_dining", title: t("home.featFastDeliveryTitle"), description: t("home.featFastDeliveryDesc") },
+  ];
   return (
     <section className="relative max-w-7xl mx-auto px-6 md:px-12 py-20 border-t border-surface-border">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-10">

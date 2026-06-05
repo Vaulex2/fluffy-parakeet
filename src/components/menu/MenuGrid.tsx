@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useCart } from "@/components/cart/CartContext";
 import { useFlyToCart } from "@/components/cart/FlyToCartContext";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { localizedField } from "@/lib/i18n";
 import type { MenuItemWithCategory } from "@/types/database";
 
 function formatPrice(uzs: number) {
@@ -12,9 +14,11 @@ function formatPrice(uzs: number) {
 // Shared quantity stepper / add button used in both card and list row
 function QuantityControl({ item }: { item: MenuItemWithCategory }) {
   const { addItem, items: cartItems, updateQuantity } = useCart();
+  const { locale } = useLanguage();
   const fly = useFlyToCart();
   const cartEntry = cartItems.find((ci) => ci.id === item.id);
   const qty = cartEntry?.quantity ?? 0;
+  const name = localizedField(item, "name", locale);
 
   if (qty > 0) {
     return (
@@ -47,7 +51,7 @@ function QuantityControl({ item }: { item: MenuItemWithCategory }) {
         addItem(
           {
             id: item.id,
-            name: item.name,
+            name,
             price_uzs: item.price,
             image_url: item.image_url,
           },
@@ -55,7 +59,7 @@ function QuantityControl({ item }: { item: MenuItemWithCategory }) {
         );
       }}
       className="bg-light-bg text-background p-2 rounded-full hover:bg-primary hover:text-white transition-colors duration-300"
-      aria-label={`Add ${item.name} to cart`}
+      aria-label={`Add ${name} to cart`}
     >
       <span className="material-symbols-outlined fill text-[20px]">add</span>
     </button>
@@ -70,6 +74,7 @@ function ItemBadges({
   item: MenuItemWithCategory;
   compact?: boolean;
 }) {
+  const { t } = useLanguage();
   if (!item.is_popular && !item.is_featured) return null;
   return (
     <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1">
@@ -79,7 +84,7 @@ function ItemBadges({
             compact ? "text-[8px] px-1.5 py-0.5" : "text-[10px] px-2 py-0.5"
           }`}
         >
-          {compact ? "POP" : "Popular"}
+          {compact ? t("menu.badgePopularShort") : t("menu.badgePopular")}
         </span>
       )}
       {item.is_featured && (
@@ -88,7 +93,7 @@ function ItemBadges({
             compact ? "text-[8px] px-1.5 py-0.5" : "text-[10px] px-2 py-0.5"
           }`}
         >
-          {compact ? "FEAT" : "Featured"}
+          {compact ? t("menu.badgeFeaturedShort") : t("menu.badgeFeatured")}
         </span>
       )}
     </div>
@@ -101,6 +106,9 @@ interface MenuCardProps {
 }
 
 function MenuCard({ item, index }: MenuCardProps) {
+  const { locale } = useLanguage();
+  const name = localizedField(item, "name", locale);
+  const description = localizedField(item, "description", locale);
   return (
     <div
       className="group relative bg-surface border border-surface-border rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-primary/10 transition-shadow duration-500 opacity-0 animate-card-enter"
@@ -112,7 +120,7 @@ function MenuCard({ item, index }: MenuCardProps) {
         {item.image_url ? (
           <Image
             src={item.image_url}
-            alt={item.name}
+            alt={name}
             fill
             className="object-cover img-hover-zoom"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -128,11 +136,11 @@ function MenuCard({ item, index }: MenuCardProps) {
 
       <div className="p-6 relative z-20 -mt-12">
         <h3 className="font-headline text-3xl text-text-primary tracking-tighter uppercase mb-1">
-          {item.name}
+          {name}
         </h3>
-        {item.description && (
+        {description && (
           <p className="text-text-muted text-sm font-light mb-4 line-clamp-2">
-            {item.description}
+            {description}
           </p>
         )}
         <div className="flex justify-between items-end">
@@ -154,6 +162,9 @@ function MenuCard({ item, index }: MenuCardProps) {
 }
 
 function MenuListRow({ item, index }: MenuCardProps) {
+  const { locale } = useLanguage();
+  const name = localizedField(item, "name", locale);
+  const description = localizedField(item, "description", locale);
   return (
     <div
       className="group flex items-center gap-4 bg-surface border border-surface-border rounded-xl overflow-hidden p-3 hover:shadow-xl hover:shadow-primary/10 transition-shadow duration-500 opacity-0 animate-card-enter"
@@ -165,7 +176,7 @@ function MenuListRow({ item, index }: MenuCardProps) {
         {item.image_url ? (
           <Image
             src={item.image_url}
-            alt={item.name}
+            alt={name}
             fill
             className="object-cover img-hover-zoom"
             sizes="120px"
@@ -182,11 +193,11 @@ function MenuListRow({ item, index }: MenuCardProps) {
       {/* Info */}
       <div className="flex-1 min-w-0">
         <h3 className="font-headline text-2xl tracking-tighter uppercase text-text-primary truncate">
-          {item.name}
+          {name}
         </h3>
-        {item.description && (
+        {description && (
           <p className="text-text-muted text-sm font-light mt-0.5 line-clamp-2">
-            {item.description}
+            {description}
           </p>
         )}
         <div className="flex items-center justify-between mt-3">
@@ -223,6 +234,7 @@ export default function MenuGrid({
   onClearFilters,
 }: MenuGridProps) {
   const { count, openCart } = useCart();
+  const { t } = useLanguage();
 
   return (
     <>
@@ -233,7 +245,10 @@ export default function MenuGrid({
           className="fixed bottom-6 right-6 z-30 flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-full shadow-lg shadow-primary/30 hover:bg-red-700 transition-colors font-body text-sm font-semibold"
         >
           <span className="material-symbols-outlined text-base">shopping_bag</span>
-          {count} {count === 1 ? "item" : "items"} in order
+          {t("menu.inOrder", {
+            count,
+            unit: t(count === 1 ? "menu.unitItem" : "menu.unitItems"),
+          })}
         </button>
       )}
 
@@ -243,19 +258,19 @@ export default function MenuGrid({
             search_off
           </span>
           <h3 className="font-headline text-3xl uppercase tracking-tighter text-text-primary mb-2">
-            No results
+            {t("menu.noResults")}
           </h3>
           <p className="font-body text-text-muted text-sm mb-6 max-w-[40ch] mx-auto">
             {searchQuery
-              ? `No items match "${searchQuery}"`
-              : "No items match the current filters"}
+              ? t("menu.noMatchSearch", { query: searchQuery })
+              : t("menu.noMatchFilters")}
           </p>
           {hasActiveFilters && (
             <button
               onClick={onClearFilters}
               className="bg-primary text-white font-headline tracking-tight px-6 py-2.5 rounded hover:bg-red-700 transition-colors duration-200"
             >
-              Clear all filters
+              {t("menu.clearFilters")}
             </button>
           )}
         </div>

@@ -9,7 +9,17 @@ import {
   joinWaitlist,
   type AlternativeSlot,
 } from "@/lib/actions/reservations";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { INTL_LOCALE } from "@/lib/i18n/config";
+import type { TranslationKey } from "@/lib/i18n";
 import type { RestaurantTable } from "@/types/database";
+
+// Maps a duration in minutes to its translation key.
+const DURATION_KEY: Record<number, TranslationKey> = {
+  60: "reservations.duration1h",
+  90: "reservations.duration15h",
+  120: "reservations.duration2h",
+};
 
 type Step = "datetime" | "tables" | "contact" | "confirmed" | "waitlist" | "waitlisted";
 
@@ -55,6 +65,9 @@ export function isSlotPast(slot: string, selectedDate: string): boolean {
 }
 
 export default function ReservationForm() {
+  const { t } = useLanguage();
+  const guestUnit = (n: number) =>
+    t(n === 1 ? "reservations.person" : "reservations.people");
   const [step, setStep] = useState<Step>("datetime");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
@@ -137,8 +150,8 @@ export default function ReservationForm() {
       });
       if (res.success) setStep("waitlisted");
       else if (res.error === "rate_limited")
-        setError("Too many attempts. Please wait a few minutes and try again.");
-      else setError("Could not join the waitlist. Please try again.");
+        setError(t("reservations.errWaitlistRate"));
+      else setError(t("reservations.errWaitlistGeneric"));
     });
   }
 
@@ -164,7 +177,7 @@ export default function ReservationForm() {
         setConfirmedToken(result.manageToken);
         setStep("confirmed");
       } else if (result.error === "slot_taken") {
-        setError("This slot was just booked by someone else. Please go back and choose another time.");
+        setError(t("reservations.errSlotTaken"));
       } else {
         setError(result.message);
       }
@@ -180,40 +193,41 @@ export default function ReservationForm() {
         </div>
         <div>
           <h2 className="font-headline text-3xl tracking-tight text-text-primary mb-2">
-            Reservation Confirmed!
+            {t("reservations.confirmedTitle")}
           </h2>
           <p className="text-text-muted font-body text-sm">
-            Booking #{confirmedId?.slice(0, 8).toUpperCase()}
+            {t("reservations.bookingNumber", {
+              id: confirmedId?.slice(0, 8).toUpperCase() ?? "",
+            })}
           </p>
         </div>
         <div className="bg-surface border border-surface-border rounded-2xl p-6 text-left space-y-3">
-          <Detail label="Name" value={name} />
-          <Detail label="Date" value={date} />
-          <Detail label="Time" value={`${formatTime12(time)} — ${formatTime12(addMinutesToTime(time, durationMinutes).slice(0, 5))}`} />
-          <Detail label="Guests" value={`${guestCount} ${guestCount === 1 ? "person" : "people"}`} />
-          <Detail label="Table" value={`Table ${selectedTable?.table_number} (capacity ${selectedTable?.seat_count})`} />
+          <Detail label={t("reservations.detailName")} value={name} />
+          <Detail label={t("reservations.detailDate")} value={date} />
+          <Detail label={t("reservations.detailTime")} value={`${formatTime12(time)} — ${formatTime12(addMinutesToTime(time, durationMinutes).slice(0, 5))}`} />
+          <Detail label={t("reservations.detailGuests")} value={t("reservations.guestsValue", { count: guestCount, unit: guestUnit(guestCount) })} />
+          <Detail label={t("reservations.detailTable")} value={t("reservations.tableValue", { number: selectedTable?.table_number ?? "", capacity: selectedTable?.seat_count ?? "" })} />
         </div>
         {email && (
           <p className="text-text-muted font-body text-sm">
-            We&apos;ve emailed your confirmation to{" "}
-            <span className="text-text-primary">{email}</span>.
+            {t("reservations.emailedConfirmation", { email })}
           </p>
         )}
         <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 space-y-3">
           <p className="font-body text-sm text-text-primary leading-relaxed">
-            <span className="font-semibold">Need to modify or cancel?</span><br />
-            Manage your booking anytime — no account needed.
+            <span className="font-semibold">{t("reservations.modifyTitle")}</span><br />
+            {t("reservations.modifyBody")}
           </p>
           {confirmedToken && (
             <a
               href={`/reservations/manage/${confirmedToken}`}
               className="inline-block bg-primary text-white font-headline tracking-tight text-base px-6 py-2.5 rounded-xl hover:bg-red-700 transition-colors"
             >
-              Manage reservation
+              {t("reservations.manageReservation")}
             </a>
           )}
           <p className="font-body text-xs text-text-muted">
-            Or call us:{" "}
+            {t("reservations.orCallUs")}{" "}
             <a href="tel:+998901234567" className="text-primary">+998 90 123 45 67</a>
           </p>
         </div>
@@ -225,13 +239,13 @@ export default function ReservationForm() {
   if (step === "datetime") {
     return (
       <div className="max-w-lg mx-auto space-y-6">
-        <StepHeader step={1} total={3} title="Choose Date & Time" />
+        <StepHeader step={1} total={3} title={t("reservations.step1Title")} stepLabel={t("reservations.stepOf", { step: 1, total: 3 })} />
 
-        <Field label="Date">
+        <Field label={t("reservations.fieldDate")}>
           <CalendarPicker value={date} min={today} onChange={setDate} />
         </Field>
 
-        <Field label="Time">
+        <Field label={t("reservations.fieldTime")}>
           <div className="grid grid-cols-4 gap-2">
             {TIME_SLOTS.map((t) => {
               const past = isSlotPast(t, date);
@@ -255,7 +269,7 @@ export default function ReservationForm() {
           </div>
         </Field>
 
-        <Field label="Duration">
+        <Field label={t("reservations.fieldDuration")}>
           <div className="flex gap-3">
             {DURATIONS.map((d) => (
               <button
@@ -267,13 +281,13 @@ export default function ReservationForm() {
                     : "border-surface-border text-text-muted hover:border-primary/60"
                 }`}
               >
-                {d.label}
+                {t(DURATION_KEY[d.minutes])}
               </button>
             ))}
           </div>
         </Field>
 
-        <Field label="Guests">
+        <Field label={t("reservations.fieldGuests")}>
           <div className="flex items-center gap-4">
             <button
               onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
@@ -291,7 +305,7 @@ export default function ReservationForm() {
               +
             </button>
             <span className="text-text-muted font-body text-sm">
-              {guestCount === 1 ? "person" : "people"}
+              {guestUnit(guestCount)}
             </span>
           </div>
         </Field>
@@ -301,7 +315,7 @@ export default function ReservationForm() {
           disabled={!date || !time || isPending}
           className="w-full bg-primary text-white font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {isPending ? "Checking availability…" : "Check Availability →"}
+          {isPending ? t("reservations.checkingAvailability") : t("reservations.checkAvailability")}
         </button>
       </div>
     );
@@ -311,28 +325,28 @@ export default function ReservationForm() {
   if (step === "tables") {
     return (
       <div className="max-w-lg mx-auto space-y-6">
-        <StepHeader step={2} total={3} title="Select a Table" />
+        <StepHeader step={2} total={3} title={t("reservations.step2Title")} stepLabel={t("reservations.stepOf", { step: 2, total: 3 })} />
         <button
           onClick={() => setStep("datetime")}
           className="text-text-muted hover:text-text-primary font-body text-sm flex items-center gap-1 transition-colors"
         >
-          <span className="material-symbols-outlined text-base">arrow_back</span> Change date/time
+          <span className="material-symbols-outlined text-base">arrow_back</span> {t("reservations.changeDateTime")}
         </button>
 
         <div className="bg-surface border border-surface-border rounded-xl p-4 text-sm font-body text-text-muted">
-          {date} · {formatTime12(time)} – {formatTime12(addMinutesToTime(time, durationMinutes).slice(0, 5))} · {DURATIONS.find(d => d.minutes === durationMinutes)?.label} · {guestCount} {guestCount === 1 ? "person" : "people"}
+          {date} · {formatTime12(time)} – {formatTime12(addMinutesToTime(time, durationMinutes).slice(0, 5))} · {t(DURATION_KEY[durationMinutes])} · {guestCount} {guestUnit(guestCount)}
         </div>
 
         {availableTables.length === 0 ? (
           <div className="text-center py-8 text-text-muted font-body space-y-5">
             <div>
               <span className="material-symbols-outlined text-4xl mb-3 block opacity-40">event_busy</span>
-              <p>No tables available for this slot.</p>
+              <p>{t("reservations.noTables")}</p>
             </div>
 
             {altSlots.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs uppercase tracking-widest">Nearby openings</p>
+                <p className="text-xs uppercase tracking-widest">{t("reservations.nearbyOpenings")}</p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {altSlots.map((slot) => (
                     <button
@@ -349,13 +363,13 @@ export default function ReservationForm() {
 
             <div className="bg-surface border border-surface-border rounded-xl p-4 space-y-3">
               <p className="text-sm text-text-primary">
-                Want this exact time? Join the waitlist and we&apos;ll email you if a table frees up.
+                {t("reservations.waitlistPrompt")}
               </p>
               <button
                 onClick={() => setStep("waitlist")}
                 className="bg-primary text-white font-headline tracking-tight text-base px-6 py-2.5 rounded-xl hover:bg-red-700 transition-colors"
               >
-                Join the waitlist →
+                {t("reservations.joinWaitlistArrow")}
               </button>
             </div>
 
@@ -363,7 +377,7 @@ export default function ReservationForm() {
               onClick={() => setStep("datetime")}
               className="text-primary hover:underline text-sm"
             >
-              Or try a different time
+              {t("reservations.tryDifferentTime")}
             </button>
           </div>
         ) : (
@@ -371,7 +385,10 @@ export default function ReservationForm() {
             {totalMatching > 0 && availableTables.length <= 2 && (
               <p className="text-amber-400 font-body text-sm flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-base">local_fire_department</span>
-                Almost full — only {availableTables.length} {availableTables.length === 1 ? "table" : "tables"} left at this time.
+                {t("reservations.almostFull", {
+                  count: availableTables.length,
+                  unit: t(availableTables.length === 1 ? "reservations.table" : "reservations.tables"),
+                })}
               </p>
             )}
             {availableTables.map((table) => (
@@ -390,9 +407,9 @@ export default function ReservationForm() {
                   {table.table_number}
                 </div>
                 <div>
-                  <p className="text-text-primary font-body text-sm font-medium">Table {table.table_number}</p>
+                  <p className="text-text-primary font-body text-sm font-medium">{t("reservations.tableLabel", { number: table.table_number })}</p>
                   <p className="text-text-muted font-body text-xs">
-                    Up to {table.seat_count} guests{table.description ? ` · ${table.description}` : ""}
+                    {t("reservations.upToGuests", { count: table.seat_count })}{table.description ? ` · ${table.description}` : ""}
                   </p>
                 </div>
                 {selectedTable?.id === table.id && (
@@ -409,7 +426,7 @@ export default function ReservationForm() {
             disabled={!selectedTable}
             className="w-full bg-primary text-white font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Continue →
+            {t("reservations.continueArrow")}
           </button>
         )}
       </div>
@@ -424,39 +441,44 @@ export default function ReservationForm() {
           onClick={() => setStep("tables")}
           className="text-text-muted hover:text-text-primary font-body text-sm flex items-center gap-1 transition-colors"
         >
-          <span className="material-symbols-outlined text-base">arrow_back</span> Back
+          <span className="material-symbols-outlined text-base">arrow_back</span> {t("reservations.back")}
         </button>
         <div>
-          <h2 className="font-headline text-3xl tracking-tight text-text-primary mb-2">Join the Waitlist</h2>
+          <h2 className="font-headline text-3xl tracking-tight text-text-primary mb-2">{t("reservations.waitlistTitle")}</h2>
           <p className="text-text-muted font-body text-sm">
-            {date} · {formatTime12(time)} · {guestCount} {guestCount === 1 ? "guest" : "guests"}. We&apos;ll email you the moment a table opens.
+            {t("reservations.waitlistSubtitle", {
+              date,
+              time: formatTime12(time),
+              count: guestCount,
+              unit: t(guestCount === 1 ? "reservations.guest" : "reservations.guests"),
+            })}
           </p>
         </div>
 
-        <Field label="Full Name *">
+        <Field label={t("reservations.fullName")}>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
+            placeholder={t("reservations.namePlaceholder")}
             className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
           />
         </Field>
-        <Field label="Phone *">
+        <Field label={t("reservations.phoneRequired")}>
           <input
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="+998 90 000 00 00"
+            placeholder={t("reservations.phonePlaceholder")}
             className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
           />
         </Field>
-        <Field label="Email (to be notified)">
+        <Field label={t("reservations.emailToNotify")}>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            placeholder={t("reservations.emailPlaceholder")}
             className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
           />
         </Field>
@@ -472,7 +494,7 @@ export default function ReservationForm() {
           disabled={!name || !phone || isPending}
           className="w-full bg-primary text-white font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {isPending ? "Joining…" : "Join Waitlist"}
+          {isPending ? t("reservations.joining") : t("reservations.joinWaitlist")}
         </button>
       </div>
     );
@@ -486,16 +508,20 @@ export default function ReservationForm() {
           <span className="material-symbols-outlined text-amber-400 text-3xl">hourglass_top</span>
         </div>
         <div>
-          <h2 className="font-headline text-3xl tracking-tight text-text-primary mb-2">You&apos;re on the waitlist</h2>
+          <h2 className="font-headline text-3xl tracking-tight text-text-primary mb-2">{t("reservations.waitlistedTitle")}</h2>
           <p className="text-text-muted font-body text-sm">
-            If a table opens for {date} at {formatTime12(time)}, we&apos;ll email{email ? ` ${email}` : " you"} right away.
+            {t("reservations.waitlistedBody", {
+              date,
+              time: formatTime12(time),
+              who: email || t("reservations.waitlistedYou"),
+            })}
           </p>
         </div>
         <a
           href="/reservations"
           className="inline-block border border-surface-border text-text-primary font-headline tracking-tight text-base px-6 py-2.5 rounded-xl hover:border-primary transition-colors"
         >
-          Book a different time
+          {t("reservations.bookDifferentTime")}
         </a>
       </div>
     );
@@ -504,46 +530,46 @@ export default function ReservationForm() {
   // ── Step: Contact Details ─────────────────────────────────
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      <StepHeader step={3} total={3} title="Your Details" />
+      <StepHeader step={3} total={3} title={t("reservations.step3Title")} stepLabel={t("reservations.stepOf", { step: 3, total: 3 })} />
       <button
         onClick={() => setStep("tables")}
         className="text-text-muted hover:text-text-primary font-body text-sm flex items-center gap-1 transition-colors"
       >
-        <span className="material-symbols-outlined text-base">arrow_back</span> Change table
+        <span className="material-symbols-outlined text-base">arrow_back</span> {t("reservations.changeTable")}
       </button>
 
-      <Field label="Full Name *">
+      <Field label={t("reservations.fullName")}>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Your name"
+          placeholder={t("reservations.namePlaceholder")}
           className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
         />
       </Field>
-      <Field label="Phone *">
+      <Field label={t("reservations.phoneRequired")}>
         <input
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="+998 90 000 00 00"
+          placeholder={t("reservations.phonePlaceholder")}
           className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
         />
       </Field>
-      <Field label="Email (optional — for confirmation)">
+      <Field label={t("reservations.emailOptional")}>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
+          placeholder={t("reservations.emailPlaceholder")}
           className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
         />
       </Field>
-      <Field label="Special Requests (optional)">
+      <Field label={t("reservations.specialRequests")}>
         <textarea
           value={specialRequests}
           onChange={(e) => setSpecialRequests(e.target.value)}
-          placeholder="Allergies, birthday celebration, high chair needed…"
+          placeholder={t("reservations.specialPlaceholder")}
           rows={3}
           className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors resize-none"
         />
@@ -560,11 +586,11 @@ export default function ReservationForm() {
         disabled={!name || !phone || isPending}
         className="w-full bg-primary text-white font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        {isPending ? "Booking…" : "Confirm Reservation"}
+        {isPending ? t("reservations.booking") : t("reservations.confirmReservation")}
       </button>
 
       <p className="text-text-muted font-body text-xs text-center">
-        Add your email to get a confirmation with a link to manage or cancel your booking.
+        {t("reservations.emailNote")}
       </p>
     </div>
   );
@@ -572,10 +598,13 @@ export default function ReservationForm() {
 
 // ── CalendarPicker ────────────────────────────────────────
 
-const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-
 export function CalendarPicker({ value, min, onChange }: { value: string; min: string; onChange: (v: string) => void }) {
+  const { locale, t } = useLanguage();
+  const intlTag = INTL_LOCALE[locale];
+  // Localized short weekday headers (Sunday-first, matching the grid).
+  const DAYS = Array.from({ length: 7 }, (_, i) =>
+    new Date(2024, 0, 7 + i).toLocaleDateString(intlTag, { weekday: "narrow" }),
+  );
   const today = new Date(min + "T00:00:00");
   const initYear = value ? Number(value.slice(0, 4)) : today.getFullYear();
   const initMonth = value ? Number(value.slice(5, 7)) - 1 : today.getMonth();
@@ -621,7 +650,7 @@ export function CalendarPicker({ value, min, onChange }: { value: string; min: s
           <span className="material-symbols-outlined text-[18px]">chevron_left</span>
         </button>
         <span className="font-headline text-base tracking-tight text-text-primary">
-          {MONTHS[viewMonth]} {viewYear}
+          {new Date(viewYear, viewMonth, 1).toLocaleDateString(intlTag, { month: "long", year: "numeric" })}
         </span>
         <button
           type="button"
@@ -669,8 +698,9 @@ export function CalendarPicker({ value, min, onChange }: { value: string; min: s
       {/* Selected date display */}
       {value && (
         <p className="mt-3 text-center text-text-muted font-body text-xs">
-          Selected: <span className="text-primary font-medium">
-            {new Date(value + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+          {t("reservations.selected")}{" "}
+          <span className="text-primary font-medium">
+            {new Date(value + "T00:00:00").toLocaleDateString(intlTag, { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
           </span>
         </p>
       )}
@@ -680,11 +710,11 @@ export function CalendarPicker({ value, min, onChange }: { value: string; min: s
 
 // ── Helpers ───────────────────────────────────────────────
 
-function StepHeader({ step, total, title }: { step: number; total: number; title: string }) {
+function StepHeader({ step, total, title, stepLabel }: { step: number; total: number; title: string; stepLabel: string }) {
   return (
     <div className="space-y-2">
       <p className="text-text-muted font-body text-xs uppercase tracking-widest">
-        Step {step} of {total}
+        {stepLabel}
       </p>
       <h2 className="font-headline text-3xl tracking-tight text-text-primary">{title}</h2>
       <div className="flex gap-1">

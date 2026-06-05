@@ -14,6 +14,11 @@ import {
   updateProfileSchema,
 } from "@/lib/validations/auth";
 import type { Profile, UpdateProfile } from "@/types/database";
+import {
+  LANG_COOKIE,
+  LANG_COOKIE_MAX_AGE,
+  normalizeLocale,
+} from "@/lib/i18n/config";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -31,6 +36,15 @@ function setRoleCookie(role: string) {
 
 function deleteRoleCookie() {
   cookies().delete("sgo-role");
+}
+
+function setLangCookie(value: string) {
+  cookies().set(LANG_COOKIE, normalizeLocale(value), {
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: LANG_COOKIE_MAX_AGE,
+    path: "/",
+  });
 }
 
 // ── signIn ────────────────────────────────────────────────
@@ -63,7 +77,7 @@ export async function signIn(formData: FormData, next?: string) {
   const admin = createAdminClient();
   const { data: profile } = await admin
     .from("profiles")
-    .select("role, is_suspended")
+    .select("role, is_suspended, preferred_language")
     .eq("id", data.user.id)
     .single();
 
@@ -74,6 +88,8 @@ export async function signIn(formData: FormData, next?: string) {
 
   const role = profile?.role ?? "customer";
   setRoleCookie(role);
+  // Adopt the user's saved language for this session.
+  if (profile?.preferred_language) setLangCookie(profile.preferred_language);
   revalidatePath("/", "layout");
   redirect(next ?? (role === "admin" ? "/admin" : "/profile"));
 }
@@ -201,6 +217,9 @@ export async function updateProfile(formData: FormData) {
     .eq("id", user.id);
 
   if (error) return { error: error.message };
+
+  // Keep the active-locale cookie in sync with the saved preference.
+  if (update.preferred_language) setLangCookie(update.preferred_language);
 
   revalidatePath("/profile");
   return { success: true };

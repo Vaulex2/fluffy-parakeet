@@ -7,6 +7,9 @@ import ProfileEditForm from "@/components/profile/ProfileEditForm";
 import CustomerReservations from "@/components/profile/CustomerReservations";
 import LoyaltyCard, { TierChip } from "@/components/profile/LoyaltyCard";
 import ProfileStats from "@/components/profile/ProfileStats";
+import { getT } from "@/lib/i18n/server";
+import { INTL_LOCALE } from "@/lib/i18n/config";
+import type { TFunction } from "@/lib/i18n";
 
 function fmtTime(time: string) {
   const [h, m] = time.split(":").map(Number);
@@ -15,8 +18,8 @@ function fmtTime(time: string) {
   return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
-function fmtLongDate(date: string) {
-  return new Date(date + "T00:00:00").toLocaleDateString("en-US", {
+function fmtLongDate(date: string, intlTag: string) {
+  return new Date(date + "T00:00:00").toLocaleDateString(intlTag, {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -24,34 +27,34 @@ function fmtLongDate(date: string) {
 }
 
 /** Relative day label: "Today" / "Tomorrow" / "in N days". */
-function countdown(date: string) {
+function countdown(date: string, t: TFunction) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const target = new Date(date + "T00:00:00");
   const days = Math.round((target.getTime() - today.getTime()) / 86_400_000);
-  if (days <= 0) return "Today";
-  if (days === 1) return "Tomorrow";
-  return `in ${days} days`;
+  if (days <= 0) return t("profile.today");
+  if (days === 1) return t("profile.tomorrow");
+  return t("profile.inDays", { count: days });
 }
 
-function NextReservation({ r }: { r: ReservationWithTable }) {
+function NextReservation({ r, t, intlTag }: { r: ReservationWithTable; t: TFunction; intlTag: string }) {
   return (
     <section className="relative overflow-hidden rounded-2xl border border-primary/30 bg-surface p-6">
       <div className="absolute -top-16 -right-16 w-56 h-56 bg-primary/20 rounded-full blur-[90px] pointer-events-none mix-blend-screen" />
       <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-5">
         <div>
           <p className="text-primary font-body text-xs uppercase tracking-widest mb-2">
-            Next reservation · {countdown(r.reservation_date)}
+            {t("profile.nextReservation")} · {countdown(r.reservation_date, t)}
           </p>
           <p className="font-headline text-2xl tracking-tight text-text-primary">
-            {fmtLongDate(r.reservation_date)}
+            {fmtLongDate(r.reservation_date, intlTag)}
           </p>
           <p className="font-body text-sm text-text-muted mt-1">
             {fmtTime(r.start_time)} – {fmtTime(r.end_time)} ·{" "}
             {r.restaurant_tables
-              ? `Table ${r.restaurant_tables.table_number} (${r.restaurant_tables.seat_count} seats)`
-              : "Table TBD"}{" "}
-            · {r.guest_count} guests
+              ? t("profile.tableSeats", { number: r.restaurant_tables.table_number, seats: r.restaurant_tables.seat_count })
+              : t("profile.tableTBD")}{" "}
+            · {t("profile.guests", { count: r.guest_count })}
           </p>
         </div>
         <a
@@ -59,7 +62,7 @@ function NextReservation({ r }: { r: ReservationWithTable }) {
           className="shrink-0 inline-flex items-center justify-center gap-1.5 bg-primary text-white font-headline tracking-tight px-5 py-2.5 rounded-xl hover:bg-red-700 transition-colors"
         >
           <span className="material-symbols-outlined text-[18px]">edit_calendar</span>
-          Manage
+          {t("profile.manage")}
         </a>
       </div>
     </section>
@@ -82,7 +85,9 @@ export default async function ProfilePage({
   ]);
   if (!profile) redirect("/auth/login");
 
-  const memberSince = new Date(profile.created_at).toLocaleDateString("en-US", {
+  const { t, locale } = getT();
+  const intlTag = INTL_LOCALE[locale];
+  const memberSince = new Date(profile.created_at).toLocaleDateString(intlTag, {
     month: "long",
     year: "numeric",
   });
@@ -94,9 +99,9 @@ export default async function ProfilePage({
         <div className="flex items-start gap-3 bg-primary/10 border border-primary/30 rounded-xl px-5 py-4">
           <span className="material-symbols-outlined text-primary text-xl mt-0.5">warning</span>
           <div>
-            <p className="font-body text-sm text-text-primary font-medium">Account Suspended</p>
+            <p className="font-body text-sm text-text-primary font-medium">{t("profile.suspendedTitle")}</p>
             <p className="font-body text-xs text-text-muted mt-0.5">
-              Your account has been suspended. You can view your history but cannot place new orders or reservations. Contact support to appeal.
+              {t("profile.suspendedBody")}
             </p>
           </div>
         </div>
@@ -117,10 +122,10 @@ export default async function ProfilePage({
           )}
           <div className="flex-1 min-w-0">
             <h1 className="font-headline text-3xl tracking-tight text-text-primary">
-              {profile.full_name ?? "My Account"}
+              {profile.full_name ?? t("profile.myAccount")}
             </h1>
             <p className="font-body text-sm text-text-muted mt-0.5 truncate">{user.email}</p>
-            <p className="font-body text-xs text-text-muted/70 mt-0.5">Member since {memberSince}</p>
+            <p className="font-body text-xs text-text-muted/70 mt-0.5">{t("profile.memberSince", { date: memberSince })}</p>
             <div className="mt-3">
               <TierChip points={profile.loyalty_points} />
             </div>
@@ -131,7 +136,7 @@ export default async function ProfilePage({
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-surface-border text-text-muted font-body text-sm hover:text-text-primary hover:border-primary/40 transition-colors"
             >
               <span className="material-symbols-outlined text-[18px]">logout</span>
-              Sign out
+              {t("profile.signOut")}
             </button>
           </form>
         </div>
@@ -148,17 +153,17 @@ export default async function ProfilePage({
       </div>
 
       {/* Next reservation highlight */}
-      {upcoming[0] && <NextReservation r={upcoming[0]} />}
+      {upcoming[0] && <NextReservation r={upcoming[0]} t={t} intlTag={intlTag} />}
 
       {/* Reservations */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-headline text-lg tracking-tight text-text-primary">My Reservations</h2>
+          <h2 className="font-headline text-lg tracking-tight text-text-primary">{t("profile.myReservations")}</h2>
           <a
             href="/reservations"
             className="text-primary hover:underline font-body text-sm"
           >
-            + Book a table
+            {t("profile.bookTable")}
           </a>
         </div>
         <CustomerReservations
@@ -173,7 +178,7 @@ export default async function ProfilePage({
       <section className="bg-surface border border-surface-border rounded-2xl overflow-hidden">
         <details className="group">
           <summary className="flex items-center justify-between cursor-pointer list-none px-6 py-5">
-            <h2 className="font-headline text-lg tracking-tight text-text-primary">Account Settings</h2>
+            <h2 className="font-headline text-lg tracking-tight text-text-primary">{t("profile.accountSettings")}</h2>
             <span className="material-symbols-outlined text-text-muted transition-transform group-open:rotate-180">
               expand_more
             </span>

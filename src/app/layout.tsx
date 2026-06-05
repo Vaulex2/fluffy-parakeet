@@ -5,6 +5,8 @@ import { CartProvider } from "@/components/cart/CartContext";
 import { FlyToCartProvider } from "@/components/cart/FlyToCartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import CookieConsent from "@/components/cookies/CookieConsent";
+import { LanguageProvider } from "@/components/i18n/LanguageProvider";
+import { getLocale } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
@@ -18,17 +20,20 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = getLocale();
   return (
-    <html lang="en" data-theme="dark">
+    <html lang={locale} data-theme="dark">
       <body className="bg-background text-text-primary font-body antialiased overflow-x-hidden min-h-screen flex flex-col">
         <NextTopLoader color="#E11D2A" height={2} shadow="0 0 10px #E11D2A,0 0 5px #E11D2A" showSpinner={false} />
-        <CartProvider>
-          <FlyToCartProvider>
-            {children}
-            <CartDrawer />
-          </FlyToCartProvider>
-        </CartProvider>
-        <CookieConsent />
+        <LanguageProvider locale={locale}>
+          <CartProvider>
+            <FlyToCartProvider>
+              {children}
+              <CartDrawer />
+            </FlyToCartProvider>
+          </CartProvider>
+          <CookieConsent />
+        </LanguageProvider>
       </body>
     </html>
   );

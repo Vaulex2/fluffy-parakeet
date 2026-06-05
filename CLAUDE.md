@@ -44,7 +44,15 @@ All mutations go through Next.js Server Actions here, not API routes:
 
 ### Internationalization
 
-Translations live entirely in `src/data/translations.ts` (Uzbek `uz`, English `en`, Russian `ru`). There is no i18n routing — language is a user preference stored in `profiles.preferred_language`.
+Static UI strings live in `src/data/translations.ts` (Uzbek `uz`, English `en`, Russian `ru`), keyed by namespace. `en` is the canonical shape — a `satisfies Record<Locale, Dictionary>` guard fails the build if `uz`/`ru` miss a key.
+
+- **Active locale** is a cookie (`sgo-lang`), defaulted to `uz` by `middleware.ts`. There is no i18n routing.
+- **Server Components** read it via `getT()` / `getLocale()` from `src/lib/i18n/server.ts`.
+- **Client Components** read it via `useLanguage()` from `src/components/i18n/LanguageProvider.tsx` (provider mounted in the root layout with the server-resolved locale).
+- **Switching** goes through `setLanguagePreference` (`src/lib/actions/i18n.ts`): sets the cookie and, when logged in, syncs `profiles.preferred_language`. `<LanguageSwitcher>` lives in the navbar + profile form. `signIn`/`updateProfile` keep the cookie in sync.
+- **Translated DB content**: `menu_items` / `menu_categories` have `name_{uz,ru,en}` + `description_{uz,ru,en}` columns (nullable; base `name`/`description` are the fallback). Resolve with `localizedField(row, "name", locale)` from `src/lib/i18n`.
+- Helpers: `t("ns.key", { var })` supports `{var}` interpolation; `INTL_LOCALE` maps a `Locale` to a BCP-47 tag for `Intl`/`toLocaleDateString`.
+- **Not localized:** the `/admin` dashboard (staff-only) and the long-form legal body copy in `/privacy` and `/terms` (chrome only) — that legal text still needs professional uz/ru translation.
 
 ### Design tokens
 

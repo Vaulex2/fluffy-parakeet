@@ -3,6 +3,7 @@ import Navbar from "@/components/layout/Navbar";
 import NavbarSkeleton from "@/components/layout/NavbarSkeleton";
 import Footer from "@/components/layout/Footer";
 import ReservationForm from "@/components/reservation/ReservationForm";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata = {
   title: "Reserve a Table | SushiGO",
@@ -10,6 +11,7 @@ export const metadata = {
 };
 
 export default function ReservationsPage() {
+  const { t } = getT();
   return (
     <>
       <Suspense fallback={<NavbarSkeleton />}>
@@ -21,13 +23,13 @@ export default function ReservationsPage() {
           <div className="max-w-2xl mx-auto">
             <div className="mb-10 text-center">
               <p className="text-primary font-body text-sm uppercase tracking-widest mb-3">
-                Online Booking
+                {t("reservations.pageTagline")}
               </p>
               <h1 className="font-headline text-5xl md:text-6xl tracking-tighter text-text-primary leading-none mb-4">
-                Reserve a Table
+                {t("reservations.pageTitle")}
               </h1>
               <p className="text-text-muted font-body text-base max-w-md mx-auto">
-                Book your spot in seconds. No account needed.
+                {t("reservations.pageSubtitle")}
               </p>
             </div>
             <ReservationForm />

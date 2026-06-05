@@ -2,10 +2,15 @@ import { Suspense, type ReactNode } from "react";
 import Navbar from "@/components/layout/Navbar";
 import NavbarSkeleton from "@/components/layout/NavbarSkeleton";
 import Footer from "@/components/layout/Footer";
+import { getT } from "@/lib/i18n/server";
 
-/** Shared shell for static legal pages (Terms, Privacy). English-only, matching the site. */
+/**
+ * Shared shell for static legal pages (Terms, Privacy). The chrome (eyebrow,
+ * "Last updated" label) is localized; the legal body copy is authored in English
+ * and should be professionally translated before relying on it in other locales.
+ */
 export function LegalDocument({
-  eyebrow = "Legal",
+  eyebrow,
   title,
   lastUpdated,
   children,
@@ -15,6 +20,7 @@ export function LegalDocument({
   lastUpdated: string;
   children: ReactNode;
 }) {
+  const { t } = getT();
   return (
     <>
       <Suspense fallback={<NavbarSkeleton />}>
@@ -23,11 +29,11 @@ export function LegalDocument({
       <main className="pt-[72px] bg-background bg-seigaiha relative overflow-hidden min-h-screen">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/15 rounded-full blur-[120px] pointer-events-none mix-blend-screen z-0" />
         <div className="relative z-10 max-w-3xl mx-auto px-6 md:px-8 py-16 md:py-24">
-          <p className="font-accent text-primary text-2xl mb-2">{eyebrow}</p>
+          <p className="font-accent text-primary text-2xl mb-2">{eyebrow ?? t("legal.eyebrow")}</p>
           <h1 className="font-headline text-4xl md:text-6xl text-text-primary tracking-tight leading-[0.95] mb-4">
             {title}
           </h1>
-          <p className="font-body text-text-muted text-sm mb-14">Last updated: {lastUpdated}</p>
+          <p className="font-body text-text-muted text-sm mb-14">{t("legal.lastUpdated", { date: lastUpdated })}</p>
           <div className="space-y-12">{children}</div>
         </div>
       </main>

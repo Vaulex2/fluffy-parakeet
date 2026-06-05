@@ -2,6 +2,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getUser } from "@/lib/actions/auth";
 import { getMyOrders } from "@/lib/actions/customer/orders";
+import { getT } from "@/lib/i18n/server";
+import { INTL_LOCALE } from "@/lib/i18n/config";
+import type { TFunction } from "@/lib/i18n";
 import type { OrderStatus } from "@/types/database";
 
 const STATUS_CLS: Record<OrderStatus, string> = {
@@ -16,8 +19,8 @@ function formatPrice(uzs: number) {
   return uzs.toLocaleString("uz-UZ") + " UZS";
 }
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
+function fmtDate(iso: string, intlTag: string) {
+  return new Date(iso).toLocaleDateString(intlTag, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -37,13 +40,15 @@ export default async function OrdersPage({
 
   const page = Math.max(1, parseInt(searchParams.page ?? "1", 10));
   const { orders, totalPages } = await getMyOrders(page);
+  const { t, locale } = getT();
+  const intlTag = INTL_LOCALE[locale];
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12 space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="font-headline text-3xl tracking-tight text-text-primary">My Orders</h1>
+        <h1 className="font-headline text-3xl tracking-tight text-text-primary">{t("orders.title")}</h1>
         <Link href="/menu" className="text-primary hover:underline font-body text-sm">
-          + Order again
+          {t("orders.orderAgain")}
         </Link>
       </div>
 
@@ -52,9 +57,9 @@ export default async function OrdersPage({
           <span className="material-symbols-outlined text-5xl text-text-muted/40 block mb-4">
             shopping_bag
           </span>
-          <p className="text-text-muted font-body">No orders yet.</p>
+          <p className="text-text-muted font-body">{t("orders.noOrders")}</p>
           <Link href="/menu" className="text-primary hover:underline font-body text-sm mt-2 inline-block">
-            Browse the menu
+            {t("orders.browseMenu")}
           </Link>
         </div>
       ) : (
@@ -71,17 +76,17 @@ export default async function OrdersPage({
                     #{order.id.slice(0, 8).toUpperCase()}
                   </p>
                   <p className="font-body text-sm text-text-muted mt-0.5">
-                    {fmtDate(order.created_at)}
+                    {fmtDate(order.created_at, intlTag)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span
-                    className={`text-xs font-body px-2.5 py-1 rounded-full border capitalize ${STATUS_CLS[order.status]}`}
+                    className={`text-xs font-body px-2.5 py-1 rounded-full border ${STATUS_CLS[order.status]}`}
                   >
-                    {order.status}
+                    {t(`orderStatus.${order.status}` as Parameters<TFunction>[0])}
                   </span>
-                  <span className="text-xs font-body px-2.5 py-1 rounded-full border border-surface-border text-text-muted capitalize">
-                    {order.order_type.replace("_", " ")}
+                  <span className="text-xs font-body px-2.5 py-1 rounded-full border border-surface-border text-text-muted">
+                    {t(`orderType.${order.order_type}` as Parameters<TFunction>[0])}
                   </span>
                 </div>
               </div>
@@ -120,7 +125,7 @@ export default async function OrdersPage({
                   href={`/orders?page=${page - 1}`}
                   className="px-3 py-1.5 rounded-lg border border-surface-border text-text-muted font-body text-sm hover:text-text-primary transition-colors"
                 >
-                  ← Prev
+                  {t("orders.prev")}
                 </Link>
               )}
               <span className="text-text-muted font-body text-xs">
@@ -131,7 +136,7 @@ export default async function OrdersPage({
                   href={`/orders?page=${page + 1}`}
                   className="px-3 py-1.5 rounded-lg border border-surface-border text-text-muted font-body text-sm hover:text-text-primary transition-colors"
                 >
-                  Next →
+                  {t("orders.next")}
                 </Link>
               )}
             </div>

@@ -4,12 +4,14 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "./CartContext";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 function formatPrice(uzs: number) {
   return uzs.toLocaleString("uz-UZ") + " UZS";
 }
 
 export default function CartDrawer() {
+  const { t } = useLanguage();
   const { items, count, total, removeItem, updateQuantity, isOpen, closeCart } =
     useCart();
 
@@ -43,7 +45,7 @@ export default function CartDrawer() {
               shopping_bag
             </span>
             <span className="font-headline text-xl tracking-tight text-text-primary">
-              Your Order
+              {t("cart.yourOrder")}
             </span>
             {count > 0 && (
               <span className="bg-primary text-white text-xs font-body font-bold w-5 h-5 rounded-full flex items-center justify-center">
@@ -54,7 +56,7 @@ export default function CartDrawer() {
           <button
             onClick={closeCart}
             className="text-text-muted hover:text-text-primary transition-colors"
-            aria-label="Close cart"
+            aria-label={t("cart.closeCart")}
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -67,12 +69,12 @@ export default function CartDrawer() {
               <span className="material-symbols-outlined text-5xl opacity-30">
                 restaurant_menu
               </span>
-              <p className="font-body text-sm">Your cart is empty</p>
+              <p className="font-body text-sm">{t("cart.empty")}</p>
               <button
                 onClick={closeCart}
                 className="text-primary font-body text-sm hover:underline"
               >
-                Browse menu
+                {t("cart.browseMenu")}
               </button>
             </div>
           ) : (
@@ -118,7 +120,7 @@ export default function CartDrawer() {
                     <button
                       onClick={() => removeItem(item.id)}
                       className="ml-auto text-text-muted hover:text-primary transition-colors"
-                      aria-label="Remove item"
+                      aria-label={t("cart.removeItem")}
                     >
                       <span className="material-symbols-outlined text-base">delete</span>
                     </button>
@@ -133,7 +135,7 @@ export default function CartDrawer() {
         {items.length > 0 && (
           <div className="px-6 py-5 border-t border-surface-border space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-text-muted font-body text-sm">Total</span>
+              <span className="text-text-muted font-body text-sm">{t("cart.total")}</span>
               <span className="text-text-primary font-headline text-xl tracking-tight">
                 {formatPrice(total)}
               </span>
@@ -143,7 +145,7 @@ export default function CartDrawer() {
               onClick={closeCart}
               className="block w-full bg-primary text-white text-center font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors duration-200"
             >
-              Proceed to Checkout
+              {t("cart.checkout")}
             </Link>
           </div>
         )}

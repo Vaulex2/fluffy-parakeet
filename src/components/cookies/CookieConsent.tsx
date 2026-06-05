@@ -8,37 +8,24 @@ import {
   writeConsent,
   type ConsentCategory,
 } from "@/lib/cookies/consent";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import type { TranslationKey } from "@/lib/i18n";
 
 type CategoryDef = {
   id: ConsentCategory;
-  title: string;
-  description: string;
+  titleKey: TranslationKey;
+  descKey: TranslationKey;
   locked?: boolean;
 };
 
 const CATEGORIES: CategoryDef[] = [
-  {
-    id: "necessary",
-    title: "Strictly necessary",
-    description:
-      "Required for the site to work — keeping you signed in, securing forms, and remembering your cookie choice. Always on.",
-    locked: true,
-  },
-  {
-    id: "analytics",
-    title: "Analytics",
-    description:
-      "Help us understand how the site is used so we can improve it. Anonymous and aggregated. We do not currently load any analytics, but your choice is saved for if we do.",
-  },
-  {
-    id: "marketing",
-    title: "Marketing",
-    description:
-      "Used to measure and personalise promotions. We do not currently use marketing cookies; your choice is saved for the future.",
-  },
+  { id: "necessary", titleKey: "cookies.necessaryTitle", descKey: "cookies.necessaryDesc", locked: true },
+  { id: "analytics", titleKey: "cookies.analyticsTitle", descKey: "cookies.analyticsDesc" },
+  { id: "marketing", titleKey: "cookies.marketingTitle", descKey: "cookies.marketingDesc" },
 ];
 
 export default function CookieConsent() {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false); // drives the enter transition
   const [customizing, setCustomizing] = useState(false);
@@ -87,7 +74,7 @@ export default function CookieConsent() {
       className="fixed inset-x-0 bottom-0 z-[60] px-4 pb-4 sm:px-6 sm:pb-6 pointer-events-none"
       role="dialog"
       aria-modal="false"
-      aria-label="Cookie preferences"
+      aria-label={t("cookies.ariaLabel")}
     >
       <div
         className="pointer-events-auto mx-auto max-w-3xl rounded-2xl border border-surface-border bg-[#101010] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] will-change-transform"
@@ -104,14 +91,12 @@ export default function CookieConsent() {
             </span>
             <div>
               <h2 className="font-headline text-xl tracking-tight text-text-primary">
-                We value your privacy
+                {t("cookies.title")}
               </h2>
               <p className="mt-2 font-body text-sm leading-relaxed text-text-muted">
-                We use cookies to keep you signed in and to secure the site. With your
-                permission we may also use cookies to understand usage and improve SushiGO.
-                Read our{" "}
+                {t("cookies.body")}{" "}
                 <Link href="/privacy" className="text-primary underline-reveal">
-                  Privacy Policy
+                  {t("cookies.privacyPolicy")}
                 </Link>
                 .
               </p>
@@ -136,17 +121,17 @@ export default function CookieConsent() {
                   <li key={cat.id} className="flex items-start justify-between gap-4">
                     <div>
                       <p className="font-body text-sm font-semibold text-text-primary">
-                        {cat.title}
+                        {t(cat.titleKey)}
                       </p>
                       <p className="mt-1 font-body text-xs leading-relaxed text-text-muted">
-                        {cat.description}
+                        {t(cat.descKey)}
                       </p>
                     </div>
                     <Toggle
                       checked={checked}
                       disabled={cat.locked}
                       onChange={onToggle}
-                      label={cat.title}
+                      label={t(cat.titleKey)}
                     />
                   </li>
                 );
@@ -161,7 +146,7 @@ export default function CookieConsent() {
               onClick={() => setCustomizing((v) => !v)}
               className="font-body text-sm text-text-muted underline-reveal self-start transition-colors hover:text-text-primary"
             >
-              {customizing ? "Hide options" : "Customize"}
+              {customizing ? t("cookies.hideOptions") : t("cookies.customize")}
             </button>
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
@@ -169,7 +154,7 @@ export default function CookieConsent() {
                 onClick={() => persist({ analytics: false, marketing: false })}
                 className="rounded-full border border-surface-border px-5 py-2.5 font-body text-sm font-semibold text-text-primary transition-colors hover:border-text-muted"
               >
-                Reject non-essential
+                {t("cookies.rejectNonEssential")}
               </button>
               {customizing ? (
                 <button
@@ -177,7 +162,7 @@ export default function CookieConsent() {
                   onClick={() => persist({ analytics, marketing })}
                   className="btn-hover-lift rounded-full bg-primary px-5 py-2.5 font-body text-sm font-semibold text-white"
                 >
-                  Save preferences
+                  {t("cookies.savePreferences")}
                 </button>
               ) : (
                 <button
@@ -185,7 +170,7 @@ export default function CookieConsent() {
                   onClick={() => persist({ analytics: true, marketing: true })}
                   className="btn-hover-lift rounded-full bg-primary px-5 py-2.5 font-body text-sm font-semibold text-white"
                 >
-                  Accept all
+                  {t("cookies.acceptAll")}
                 </button>
               )}
             </div>

@@ -13,6 +13,7 @@ import {
   deleteCategory,
 } from "@/lib/actions/admin/menu";
 import type { MenuCategory, MenuItemWithCategory, InsertMenuItem } from "@/types/database";
+import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n/config";
 
 function fmt(uzs: number) {
   return uzs.toLocaleString("uz-UZ") + " UZS";
@@ -24,9 +25,15 @@ function slugify(s: string) {
 
 const BLANK: Omit<InsertMenuItem, "sort_order"> = {
   name: "",
+  name_uz: null,
+  name_ru: null,
+  name_en: null,
   category_id: null,
   price: 0,
   description: null,
+  description_uz: null,
+  description_ru: null,
+  description_en: null,
   image_url: null,
   is_available: true,
   is_featured: false,
@@ -47,6 +54,7 @@ export default function MenuClient({
   const [modal, setModal] = useState<null | "item">(null);
   const [editingItem, setEditingItem] = useState<MenuItemWithCategory | null>(null);
   const [form, setForm] = useState<Omit<InsertMenuItem, "sort_order">>(BLANK);
+  const [langTab, setLangTab] = useState<Locale>("uz");
   const [uploading, setUploading] = useState(false);
   const [catName, setCatName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -58,16 +66,25 @@ export default function MenuClient({
   function openAdd() {
     setEditingItem(null);
     setForm(BLANK);
+    setLangTab("uz");
     setModal("item");
   }
 
   function openEdit(item: MenuItemWithCategory) {
     setEditingItem(item);
+    setLangTab("uz");
     setForm({
       name: item.name,
+      // Seed the Uzbek tab from the base column for items created before i18n.
+      name_uz: item.name_uz ?? item.name,
+      name_ru: item.name_ru,
+      name_en: item.name_en,
       category_id: item.category_id,
       price: item.price,
       description: item.description,
+      description_uz: item.description_uz ?? item.description,
+      description_ru: item.description_ru,
+      description_en: item.description_en,
       image_url: item.image_url,
       is_available: item.is_available,
       is_featured: item.is_featured,
@@ -89,9 +106,19 @@ export default function MenuClient({
   }
 
   function saveItem() {
-    if (!form.name || !form.price) return;
+    // Base columns are the fallback: derive them from the localized fields
+    // (Uzbek first), so the NOT NULL `name` is always populated.
+    const baseName = (form.name_uz || form.name_en || form.name_ru || "").trim();
+    const baseDescription =
+      form.description_uz || form.description_en || form.description_ru || null;
+    if (!baseName || !form.price) return;
     startTransition(async () => {
-      const payload: InsertMenuItem = { ...form, sort_order: 0 };
+      const payload: InsertMenuItem = {
+        ...form,
+        name: baseName,
+        description: baseDescription,
+        sort_order: editingItem?.sort_order ?? 0,
+      };
       if (editingItem) {
         await updateMenuItem(editingItem.id, payload);
       } else {
@@ -122,6 +149,7 @@ export default function MenuClient({
     startTransition(async () => {
       await createCategory({
         name: catName.trim(),
+        name_uz: catName.trim(),
         slug: slugify(catName.trim()),
         sort_order: categories.length + 1,
       });
@@ -336,14 +364,63 @@ export default function MenuClient({
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
             </div>
 
-            <Field label="Name *">
-              <input
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="e.g. Tiger Roll"
-                className={inputCls}
-              />
-            </Field>
+            {/* Localized name + description (per-language tabs) */}
+            <div className="space-y-3">
+              <div className="flex gap-1">
+                {LOCALES.map((l) => (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => setLangTab(l)}
+                    className={`px-3 py-1.5 rounded-lg font-body text-xs border transition-colors ${
+                      langTab === l
+                        ? "bg-primary text-white border-primary"
+                        : "border-surface-border text-text-muted hover:border-primary/40"
+                    }`}
+                  >
+                    {LOCALE_LABELS[l]}
+                  </button>
+                ))}
+              </div>
+
+              <Field label={`Name (${LOCALE_LABELS[langTab]})${langTab === "uz" ? " *" : ""}`}>
+                <input
+                  value={(form[`name_${langTab}` as `name_${Locale}`] as string | null) ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      [`name_${langTab}`]: e.target.value || null,
+                    }) as typeof f)
+                  }
+                  placeholder="e.g. Tiger Roll"
+                  className={inputCls}
+                />
+              </Field>
+
+              <Field label={`Description (${LOCALE_LABELS[langTab]})`}>
+                <textarea
+                  value={
+                    (form[`description_${langTab}` as `description_${Locale}`] as
+                      | string
+                      | null) ?? ""
+                  }
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      [`description_${langTab}`]: e.target.value || null,
+                    }) as typeof f)
+                  }
+                  placeholder="Ingredients, taste profile…"
+                  rows={3}
+                  className={`${inputCls} resize-none`}
+                />
+              </Field>
+
+              <p className="text-text-muted/70 font-body text-[11px]">
+                Uzbek is required and is used as the fallback when a translation is
+                left empty.
+              </p>
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <Field label="Category">
@@ -368,16 +445,6 @@ export default function MenuClient({
                 />
               </Field>
             </div>
-
-            <Field label="Description">
-              <textarea
-                value={form.description ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value || null }))}
-                placeholder="Ingredients, taste profile…"
-                rows={3}
-                className={`${inputCls} resize-none`}
-              />
-            </Field>
 
             <Field label="Availability">
               <div className="flex items-center gap-3">
@@ -409,7 +476,7 @@ export default function MenuClient({
               </button>
               <button
                 onClick={saveItem}
-                disabled={isPending || uploading || !form.name || !form.price}
+                disabled={isPending || uploading || !form.name_uz || !form.price}
                 className="flex-1 py-2.5 rounded-xl bg-primary text-white font-body text-sm hover:bg-red-700 transition-colors disabled:opacity-40"
               >
                 {isPending ? "Saving…" : editingItem ? "Save Changes" : "Add Item"}

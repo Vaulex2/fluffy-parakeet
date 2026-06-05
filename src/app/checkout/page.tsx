@@ -6,12 +6,14 @@ import Image from "next/image";
 import { createBrowserClient } from "@supabase/ssr";
 import { useCart } from "@/components/cart/CartContext";
 import { createOrder } from "@/lib/actions/orders";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 function formatPrice(uzs: number) {
   return uzs.toLocaleString("uz-UZ") + " UZS";
 }
 
 export default function CheckoutPage() {
+  const { t } = useLanguage();
   const { items, total, clearCart } = useCart();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -57,10 +59,10 @@ export default function CheckoutPage() {
             shopping_bag
           </span>
           <h2 className="font-headline text-3xl tracking-tight text-text-primary">
-            Your cart is empty
+            {t("checkout.emptyTitle")}
           </h2>
           <Link href="/menu" className="text-primary hover:underline font-body text-sm">
-            Browse the menu
+            {t("checkout.browseMenu")}
           </Link>
         </div>
       </main>
@@ -102,34 +104,34 @@ export default function CheckoutPage() {
             </div>
             <div>
               <h2 className="font-headline text-4xl tracking-tight text-text-primary mb-2">
-                Order Placed!
+                {t("checkout.placedTitle")}
               </h2>
               <p className="text-text-muted font-body text-sm">
-                Order #{orderId.slice(0, 8).toUpperCase()}
+                {t("checkout.orderNumber", { id: orderId.slice(0, 8).toUpperCase() })}
               </p>
             </div>
             <div className="bg-surface border border-surface-border rounded-xl p-5 text-left space-y-2">
               <p className="text-text-muted font-body text-sm">
-                Type: <span className="text-text-primary font-medium capitalize">{orderType}</span>
+                {t("checkout.type")} <span className="text-text-primary font-medium">{t(`orderType.${orderType}`)}</span>
               </p>
               {address && (
                 <p className="text-text-muted font-body text-sm">
-                  Address: <span className="text-text-primary font-medium">{address}</span>
+                  {t("checkout.address")} <span className="text-text-primary font-medium">{address}</span>
                 </p>
               )}
               <p className="text-text-muted font-body text-sm">
-                Total: <span className="text-primary font-headline text-xl">{formatPrice(confirmedTotal)}</span>
+                {t("checkout.total")} <span className="text-primary font-headline text-xl">{formatPrice(confirmedTotal)}</span>
               </p>
             </div>
             <p className="text-text-muted font-body text-sm">
-              Questions? Call us at{" "}
+              {t("checkout.questions")}{" "}
               <a href="tel:+998901234567" className="text-primary">+998 90 123 45 67</a>
             </p>
             <Link
               href="/menu"
               className="inline-block bg-primary text-white font-headline tracking-tight text-lg px-8 py-3 rounded-xl hover:bg-red-700 transition-colors"
             >
-              Order Again
+              {t("checkout.orderAgain")}
             </Link>
           </div>
       </main>
@@ -140,7 +142,7 @@ export default function CheckoutPage() {
     e.preventDefault();
     setError(null);
     if (orderType === "delivery" && !address.trim()) {
-      setError("Please enter a delivery address.");
+      setError(t("checkout.addressError"));
       return;
     }
     startTransition(async () => {
@@ -180,7 +182,7 @@ export default function CheckoutPage() {
           {/* Order Summary */}
           <div className="space-y-4">
             <h2 className="font-headline text-3xl tracking-tight text-text-primary">
-              Your Order
+              {t("checkout.yourOrder")}
             </h2>
             <div className="space-y-3">
               {items.map((item) => (
@@ -212,7 +214,7 @@ export default function CheckoutPage() {
               ))}
             </div>
             <div className="flex items-center justify-between border-t border-surface-border pt-4">
-              <span className="text-text-muted font-body">Total</span>
+              <span className="text-text-muted font-body">{t("checkout.totalLabel")}</span>
               <span className="text-primary font-headline text-2xl">{formatPrice(total)}</span>
             </div>
           </div>
@@ -220,75 +222,75 @@ export default function CheckoutPage() {
           {/* Checkout Form */}
           <div className="space-y-6">
             <h2 className="font-headline text-3xl tracking-tight text-text-primary">
-              Your Details
+              {t("checkout.yourDetails")}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <Field label="Full Name *">
+              <Field label={t("checkout.fullName")}>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  placeholder="Your name"
+                  placeholder={t("checkout.namePlaceholder")}
                   className={inputCls}
                 />
               </Field>
-              <Field label="Phone *">
+              <Field label={t("checkout.phone")}>
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
-                  placeholder="+998 90 000 00 00"
+                  placeholder={t("checkout.phonePlaceholder")}
                   className={inputCls}
                 />
               </Field>
-              <Field label="Email (optional — for receipt)">
+              <Field label={t("checkout.emailReceipt")}>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder={t("checkout.emailPlaceholder")}
                   className={inputCls}
                 />
               </Field>
 
-              <Field label="Order Type">
+              <Field label={t("checkout.orderType")}>
                 <div className="flex gap-3">
                   {(["pickup", "delivery"] as const).map((type) => (
                     <button
                       key={type}
                       type="button"
                       onClick={() => setOrderType(type)}
-                      className={`flex-1 py-2.5 rounded-xl border font-body text-sm capitalize transition-colors ${
+                      className={`flex-1 py-2.5 rounded-xl border font-body text-sm transition-colors ${
                         orderType === type
                           ? "bg-primary border-primary text-white"
                           : "border-surface-border text-text-muted hover:border-primary/60"
                       }`}
                     >
-                      {type}
+                      {t(`orderType.${type}`)}
                     </button>
                   ))}
                 </div>
               </Field>
 
               {orderType === "delivery" && (
-                <Field label="Delivery Address *">
+                <Field label={t("checkout.deliveryAddress")}>
                   <input
                     type="text"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Street, building, apartment"
+                    placeholder={t("checkout.addressPlaceholder")}
                     className={inputCls}
                   />
                 </Field>
               )}
 
-              <Field label="Notes (optional)">
+              <Field label={t("checkout.notes")}>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Special instructions, allergies…"
+                  placeholder={t("checkout.notesPlaceholder")}
                   rows={2}
                   className={`${inputCls} resize-none`}
                 />
@@ -305,7 +307,7 @@ export default function CheckoutPage() {
                 disabled={isPending}
                 className="w-full bg-primary text-white font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {isPending ? "Placing order…" : "Place Order"}
+                {isPending ? t("checkout.placingOrder") : t("checkout.placeOrder")}
               </button>
             </form>
           </div>

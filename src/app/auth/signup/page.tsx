@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import { signUp } from "@/lib/actions/auth";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 // Maps the user's email domain to its webmail inbox, so the confirmation screen
 // can offer a one-tap "Open <provider>" button. Defaults to Gmail.
@@ -50,6 +51,7 @@ function GoogleIcon() {
 }
 
 export default function SignUpPage() {
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
@@ -101,16 +103,16 @@ export default function SignUpPage() {
           </div>
           <div>
             <h2 className="font-headline text-3xl tracking-tight text-text-primary mb-2">
-              Check your email
+              {t("auth.checkEmail")}
             </h2>
             <p className="text-text-muted font-body text-sm leading-relaxed">
-              We&apos;ve sent a confirmation link to{" "}
+              {t("auth.confirmSent")}{" "}
               {submittedEmail ? (
                 <strong className="text-text-primary">{submittedEmail}</strong>
               ) : (
-                "your inbox"
+                t("auth.confirmSentInbox")
               )}
-              . Click it to activate your account and start ordering.
+              {t("auth.confirmSentTail")}
             </p>
           </div>
 
@@ -125,14 +127,14 @@ export default function SignUpPage() {
           </a>
 
           <p className="text-text-muted/70 font-body text-xs leading-relaxed">
-            Didn&apos;t get it? Check your spam folder, or wait a minute and try again.
+            {t("auth.didntGet")}
           </p>
 
           <Link
             href="/auth/login"
             className="inline-block text-primary hover:underline font-body text-sm"
           >
-            Back to sign in
+            {t("auth.backToSignIn")}
           </Link>
         </div>
       </div>
@@ -153,7 +155,7 @@ export default function SignUpPage() {
             </span>
           </Link>
           <p className="mt-4 text-text-muted font-body text-sm">
-            Create your account
+            {t("auth.createSubtitle")}
           </p>
         </div>
 
@@ -166,19 +168,19 @@ export default function SignUpPage() {
             className="w-full flex items-center justify-center gap-3 bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm hover:bg-surface-border/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-5"
           >
             <GoogleIcon />
-            {googleLoading ? "Redirecting…" : "Sign up with Google"}
+            {googleLoading ? t("auth.redirecting") : t("auth.signupGoogle")}
           </button>
 
           <div className="flex items-center gap-3 mb-5">
             <div className="flex-1 h-px bg-surface-border" />
-            <span className="text-text-muted font-body text-xs uppercase tracking-widest">or</span>
+            <span className="text-text-muted font-body text-xs uppercase tracking-widest">{t("auth.or")}</span>
             <div className="flex-1 h-px bg-surface-border" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-text-muted text-xs font-body font-medium uppercase tracking-widest mb-2">
-                Full Name
+                {t("auth.fullName")}
               </label>
               <input
                 type="text"
@@ -186,12 +188,12 @@ export default function SignUpPage() {
                 required
                 autoComplete="name"
                 className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
-                placeholder="Jasur Karimov"
+                placeholder={t("auth.fullNamePlaceholder")}
               />
             </div>
             <div>
               <label className="block text-text-muted text-xs font-body font-medium uppercase tracking-widest mb-2">
-                Email
+                {t("auth.email")}
               </label>
               <input
                 type="email"
@@ -199,12 +201,12 @@ export default function SignUpPage() {
                 required
                 autoComplete="email"
                 className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
-                placeholder="you@example.com"
+                placeholder={t("auth.emailPlaceholder")}
               />
             </div>
             <div>
               <label className="block text-text-muted text-xs font-body font-medium uppercase tracking-widest mb-2">
-                Password
+                {t("auth.password")}
               </label>
               <input
                 type="password"
@@ -213,12 +215,12 @@ export default function SignUpPage() {
                 autoComplete="new-password"
                 minLength={8}
                 className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
-                placeholder="Min. 8 characters"
+                placeholder={t("auth.passwordMin")}
               />
             </div>
             <div>
               <label className="block text-text-muted text-xs font-body font-medium uppercase tracking-widest mb-2">
-                Confirm Password
+                {t("auth.confirmPassword")}
               </label>
               <input
                 type="password"
@@ -226,7 +228,7 @@ export default function SignUpPage() {
                 required
                 autoComplete="new-password"
                 className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
-                placeholder="Re-enter your password"
+                placeholder={t("auth.confirmPasswordPlaceholder")}
               />
             </div>
 
@@ -241,20 +243,20 @@ export default function SignUpPage() {
               disabled={isPending || googleLoading}
               className="w-full bg-primary text-white font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isPending ? "Creating account…" : "Create Account"}
+              {isPending ? t("auth.creatingAccount") : t("auth.createAccount")}
             </button>
           </form>
         </div>
 
         <p className="text-center mt-6 text-text-muted font-body text-sm">
-          Already have an account?{" "}
+          {t("auth.haveAccount")}{" "}
           <Link href="/auth/login" className="text-primary hover:underline font-medium">
-            Sign in
+            {t("auth.signInLink")}
           </Link>
         </p>
         <p className="text-center mt-3 text-text-muted font-body text-xs">
           <Link href="/" className="hover:text-text-primary transition-colors">
-            ← Back to restaurant
+            {t("auth.backToRestaurant")}
           </Link>
         </p>
       </div>

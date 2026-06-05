@@ -1,12 +1,13 @@
+import { getT } from "@/lib/i18n/server";
+
 export default function MarqueeBanner() {
-  const items = [
-    "FRESH DAILY",
-    "PREMIUM INGREDIENTS",
-    "DINE IN · TAKEAWAY · DELIVERY",
-    "FRESH DAILY",
-    "PREMIUM INGREDIENTS",
-    "DINE IN · TAKEAWAY · DELIVERY",
+  const { t } = getT();
+  const base = [
+    t("home.marqueeFresh"),
+    t("home.marqueePremium"),
+    t("home.marqueeService"),
   ];
+  const items = [...base, ...base];
 
   return (
     <div className="bg-primary py-4 overflow-hidden flex whitespace-nowrap border-y border-red-900 shadow-lg shadow-primary/10 relative z-20">

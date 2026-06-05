@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { INTL_LOCALE } from "@/lib/i18n/config";
+import type { TFunction } from "@/lib/i18n";
 import type { ReservationStatus, ReservationWithTable } from "@/types/database";
 
 const STATUS_CLS: Record<ReservationStatus, string> = {
@@ -19,8 +22,8 @@ function fmtTime(time: string) {
   return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
-function fmtDate(date: string) {
-  return new Date(date + "T00:00:00").toLocaleDateString("en-US", {
+function fmtDate(date: string, intlTag: string) {
+  return new Date(date + "T00:00:00").toLocaleDateString(intlTag, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -33,32 +36,32 @@ function isManageable(status: ReservationStatus) {
   return status === "pending" || status === "confirmed";
 }
 
-function ReservationCard({ r }: { r: ReservationWithTable }) {
+function ReservationCard({ r, t, intlTag }: { r: ReservationWithTable; t: TFunction; intlTag: string }) {
   return (
     <div className="bg-background border border-surface-border rounded-xl p-4 space-y-2">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-body text-sm text-text-primary font-medium">
-            {fmtDate(r.reservation_date)}
+            {fmtDate(r.reservation_date, intlTag)}
           </p>
           <p className="font-body text-xs text-text-muted mt-0.5">
             {fmtTime(r.start_time)} – {fmtTime(r.end_time)} ·{" "}
             {r.restaurant_tables
-              ? `Table ${r.restaurant_tables.table_number} (${r.restaurant_tables.seat_count} seats)`
-              : "Table TBD"}
+              ? t("profile.tableSeats", { number: r.restaurant_tables.table_number, seats: r.restaurant_tables.seat_count })
+              : t("profile.tableTBD")}
           </p>
         </div>
         <span
-          className={`shrink-0 text-xs font-body px-2.5 py-1 rounded-full border capitalize ${STATUS_CLS[r.status]}`}
+          className={`shrink-0 text-xs font-body px-2.5 py-1 rounded-full border ${STATUS_CLS[r.status]}`}
         >
-          {r.status.replace("_", " ")}
+          {t(`status.${r.status}` as Parameters<TFunction>[0])}
         </span>
       </div>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4 text-xs text-text-muted font-body min-w-0">
           <span className="flex items-center gap-1 shrink-0">
             <span className="material-symbols-outlined text-[14px]">group</span>
-            {r.guest_count} guests
+            {t("profile.guests", { count: r.guest_count })}
           </span>
           {r.special_requests && (
             <span className="truncate">{r.special_requests}</span>
@@ -70,7 +73,7 @@ function ReservationCard({ r }: { r: ReservationWithTable }) {
             className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-border text-text-primary font-body text-xs hover:border-primary hover:text-primary transition-colors"
           >
             <span className="material-symbols-outlined text-[14px]">edit_calendar</span>
-            Manage
+            {t("profile.manage")}
           </a>
         )}
       </div>
@@ -78,7 +81,7 @@ function ReservationCard({ r }: { r: ReservationWithTable }) {
   );
 }
 
-function EmptyState({ message }: { message: string }) {
+function EmptyState({ message, cta }: { message: string; cta: string }) {
   return (
     <div className="text-center py-12">
       <span className="material-symbols-outlined text-4xl text-text-muted/40 block mb-3">
@@ -86,7 +89,7 @@ function EmptyState({ message }: { message: string }) {
       </span>
       <p className="text-text-muted font-body text-sm">{message}</p>
       <a href="/reservations" className="text-primary hover:underline font-body text-sm mt-2 inline-block">
-        Book a table
+        {cta}
       </a>
     </div>
   );
@@ -106,11 +109,13 @@ export default function CustomerReservations({
   page: number;
 }) {
   const router = useRouter();
+  const { locale, t } = useLanguage();
+  const intlTag = INTL_LOCALE[locale];
   const [tab, setTab] = useState<Tab>(upcoming.length > 0 ? "upcoming" : "history");
 
   const tabs: { value: Tab; label: string; count?: number }[] = [
-    { value: "upcoming", label: "Upcoming", count: upcoming.length },
-    { value: "history", label: "History" },
+    { value: "upcoming", label: t("profile.tabUpcoming"), count: upcoming.length },
+    { value: "history", label: t("profile.tabHistory") },
   ];
 
   return (
@@ -138,20 +143,20 @@ export default function CustomerReservations({
 
       {tab === "upcoming" ? (
         upcoming.length === 0 ? (
-          <EmptyState message="No upcoming reservations." />
+          <EmptyState message={t("profile.noUpcoming")} cta={t("profile.bookTablePlain")} />
         ) : (
           <div className="space-y-3">
             {upcoming.map((r) => (
-              <ReservationCard key={r.id} r={r} />
+              <ReservationCard key={r.id} r={r} t={t} intlTag={intlTag} />
             ))}
           </div>
         )
       ) : reservations.length === 0 ? (
-        <EmptyState message="No reservations yet." />
+        <EmptyState message={t("profile.noReservations")} cta={t("profile.bookTablePlain")} />
       ) : (
         <div className="space-y-3">
           {reservations.map((r) => (
-            <ReservationCard key={r.id} r={r} />
+            <ReservationCard key={r.id} r={r} t={t} intlTag={intlTag} />
           ))}
 
           {/* Pagination */}
@@ -162,7 +167,7 @@ export default function CustomerReservations({
                 disabled={page <= 1}
                 className="px-3 py-1.5 rounded-lg border border-surface-border text-text-muted font-body text-sm hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                ← Prev
+                {t("profile.prev")}
               </button>
               <span className="text-text-muted font-body text-xs">
                 {page} / {totalPages}
@@ -172,7 +177,7 @@ export default function CustomerReservations({
                 disabled={page >= totalPages}
                 className="px-3 py-1.5 rounded-lg border border-surface-border text-text-muted font-body text-sm hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                Next →
+                {t("profile.next")}
               </button>
             </div>
           )}
