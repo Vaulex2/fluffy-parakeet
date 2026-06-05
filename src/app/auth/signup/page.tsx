@@ -5,6 +5,27 @@ import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import { signUp } from "@/lib/actions/auth";
 
+// Maps the user's email domain to its webmail inbox, so the confirmation screen
+// can offer a one-tap "Open <provider>" button. Defaults to Gmail.
+function webmailLink(email: string): { url: string; label: string } {
+  const domain = email.split("@")[1]?.toLowerCase() ?? "";
+  const providers: Record<string, { url: string; label: string }> = {
+    "gmail.com": { url: "https://mail.google.com/mail/u/0/#inbox", label: "Open Gmail" },
+    "googlemail.com": { url: "https://mail.google.com/mail/u/0/#inbox", label: "Open Gmail" },
+    "outlook.com": { url: "https://outlook.live.com/mail/0/", label: "Open Outlook" },
+    "hotmail.com": { url: "https://outlook.live.com/mail/0/", label: "Open Outlook" },
+    "live.com": { url: "https://outlook.live.com/mail/0/", label: "Open Outlook" },
+    "msn.com": { url: "https://outlook.live.com/mail/0/", label: "Open Outlook" },
+    "yahoo.com": { url: "https://mail.yahoo.com/", label: "Open Yahoo Mail" },
+    "icloud.com": { url: "https://www.icloud.com/mail", label: "Open iCloud Mail" },
+    "me.com": { url: "https://www.icloud.com/mail", label: "Open iCloud Mail" },
+    "yandex.com": { url: "https://mail.yandex.com/", label: "Open Yandex Mail" },
+    "yandex.ru": { url: "https://mail.yandex.ru/", label: "Open Yandex Mail" },
+    "mail.ru": { url: "https://e.mail.ru/", label: "Open Mail.ru" },
+  };
+  return providers[domain] ?? { url: "https://mail.google.com/mail/u/0/#inbox", label: "Open Gmail" };
+}
+
 function GoogleIcon() {
   return (
     <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden>
@@ -31,6 +52,7 @@ function GoogleIcon() {
 export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
   const [isPending, startTransition] = useTransition();
   const [googleLoading, setGoogleLoading] = useState(false);
 
@@ -38,11 +60,13 @@ export default function SignUpPage() {
     e.preventDefault();
     setError(null);
     const formData = new FormData(e.currentTarget);
+    const email = String(formData.get("email") ?? "");
     startTransition(async () => {
       const result = await signUp(formData);
       if (result?.error) {
         setError(result.error);
       } else if (result?.success) {
+        setSubmittedEmail(email);
         setSuccess(true);
       }
     });
@@ -67,6 +91,7 @@ export default function SignUpPage() {
   }
 
   if (success) {
+    const mail = webmailLink(submittedEmail);
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
@@ -79,9 +104,30 @@ export default function SignUpPage() {
               Check your email
             </h2>
             <p className="text-text-muted font-body text-sm leading-relaxed">
-              We&apos;ve sent you a confirmation link. Click it to activate your account and start ordering.
+              We&apos;ve sent a confirmation link to{" "}
+              {submittedEmail ? (
+                <strong className="text-text-primary">{submittedEmail}</strong>
+              ) : (
+                "your inbox"
+              )}
+              . Click it to activate your account and start ordering.
             </p>
           </div>
+
+          <a
+            href={mail.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full inline-flex items-center justify-center gap-2 bg-primary text-white font-headline tracking-tight text-lg py-3 rounded-xl hover:bg-red-700 transition-colors duration-200"
+          >
+            <span className="material-symbols-outlined text-xl">open_in_new</span>
+            {mail.label}
+          </a>
+
+          <p className="text-text-muted/70 font-body text-xs leading-relaxed">
+            Didn&apos;t get it? Check your spam folder, or wait a minute and try again.
+          </p>
+
           <Link
             href="/auth/login"
             className="inline-block text-primary hover:underline font-body text-sm"
