@@ -39,14 +39,17 @@ const BLANK: Omit<InsertMenuItem, "sort_order"> = {
   is_featured: false,
   is_popular: false,
   calories: null,
+  daily_limit: 30,
 };
 
 export default function MenuClient({
   initialItems,
   categories,
+  soldToday = {},
 }: {
   initialItems: MenuItemWithCategory[];
   categories: MenuCategory[];
+  soldToday?: Record<string, number>;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -90,6 +93,7 @@ export default function MenuClient({
       is_featured: item.is_featured,
       is_popular: item.is_popular,
       calories: item.calories,
+      daily_limit: item.daily_limit,
     });
     setModal("item");
   }
@@ -241,6 +245,20 @@ export default function MenuClient({
               {item.description && (
                 <p className="text-text-muted font-body text-xs line-clamp-2">{item.description}</p>
               )}
+              {(() => {
+                const sold = soldToday[item.id] ?? 0;
+                const limit = item.daily_limit;
+                const soldOut = limit != null && sold >= limit;
+                return (
+                  <p className={`font-body text-[11px] ${soldOut ? "text-primary" : "text-text-muted"}`}>
+                    <span className="material-symbols-outlined text-[12px] align-middle mr-1">
+                      inventory_2
+                    </span>
+                    {limit != null ? `${sold} / ${limit} today` : `${sold} today · no limit`}
+                    {soldOut ? " · sold out" : ""}
+                  </p>
+                );
+              })()}
               <div className="flex items-center justify-between pt-1">
                 <span className="text-primary font-body text-sm font-semibold">{fmt(item.price)}</span>
                 <button
@@ -445,6 +463,25 @@ export default function MenuClient({
                 />
               </Field>
             </div>
+
+            <Field label="Daily limit (per day)">
+              <input
+                type="number"
+                min={0}
+                value={form.daily_limit ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    daily_limit: e.target.value === "" ? null : Math.max(0, Number(e.target.value)),
+                  }))
+                }
+                placeholder="Leave blank = unlimited"
+                className={inputCls}
+              />
+              <p className="text-text-muted/70 font-body text-[11px] mt-1">
+                Max units orderable per day. Blank = unlimited. Resets each day.
+              </p>
+            </Field>
 
             <Field label="Availability">
               <div className="flex items-center gap-3">

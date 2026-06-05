@@ -110,6 +110,8 @@ const en = {
     badgePopularShort: "POP",
     badgeFeatured: "Featured",
     badgeFeaturedShort: "FEAT",
+    soldOutToday: "Sold out today",
+    onlyNLeft: "Only {count} left today",
   },
   reservations: {
     pageTagline: "Online Booking",
@@ -419,6 +421,7 @@ const en = {
     placingOrder: "Placing order…",
     placeOrder: "Place Order",
     addressError: "Please enter a delivery address.",
+    limitError: "Sorry, {item} is sold out for today. Please adjust your order.",
   },
   cart: {
     yourOrder: "Your Order",
@@ -574,6 +577,8 @@ const uz = {
     badgePopularShort: "OMM",
     badgeFeatured: "Tavsiya",
     badgeFeaturedShort: "TAV",
+    soldOutToday: "Bugun tugadi",
+    onlyNLeft: "Bugun atigi {count} ta qoldi",
   },
   reservations: {
     pageTagline: "Onlayn bron",
@@ -886,6 +891,7 @@ const uz = {
     placingOrder: "Buyurtma berilmoqda…",
     placeOrder: "Buyurtma berish",
     addressError: "Iltimos, yetkazib berish manzilini kiriting.",
+    limitError: "Kechirasiz, {item} bugunga tugadi. Iltimos, buyurtmangizni o'zgartiring.",
   },
   cart: {
     yourOrder: "Buyurtmangiz",
@@ -1041,6 +1047,8 @@ const ru = {
     badgePopularShort: "ПОП",
     badgeFeatured: "Хит",
     badgeFeaturedShort: "ХИТ",
+    soldOutToday: "Сегодня закончилось",
+    onlyNLeft: "Осталось всего {count} на сегодня",
   },
   reservations: {
     pageTagline: "Онлайн-бронирование",
@@ -1352,6 +1360,7 @@ const ru = {
     placingOrder: "Оформляем заказ…",
     placeOrder: "Оформить заказ",
     addressError: "Пожалуйста, укажите адрес доставки.",
+    limitError: "Извините, «{item}» на сегодня закончилось. Измените, пожалуйста, заказ.",
   },
   cart: {
     yourOrder: "Ваш заказ",

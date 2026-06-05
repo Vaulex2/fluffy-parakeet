@@ -4,7 +4,7 @@ import NavbarSkeleton from "@/components/layout/NavbarSkeleton";
 import Footer from "@/components/layout/Footer";
 import MenuHero from "@/components/menu/MenuHero";
 import MenuClientShell from "@/components/menu/MenuClientShell";
-import { getMenuItems, getCategories } from "@/lib/actions/menu";
+import { getMenuItemsWithAvailability, getCategories } from "@/lib/actions/menu";
 
 export const metadata = {
   title: "Menu | SushiGO",
@@ -12,7 +12,10 @@ export const metadata = {
 };
 
 export default async function MenuPage() {
-  const [items, categories] = await Promise.all([getMenuItems(), getCategories()]);
+  const [items, categories] = await Promise.all([
+    getMenuItemsWithAvailability(),
+    getCategories(),
+  ]);
 
   return (
     <>

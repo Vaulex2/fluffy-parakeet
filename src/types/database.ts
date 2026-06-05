@@ -42,10 +42,21 @@ export interface MenuItem {
   is_featured: boolean;
   is_popular: boolean;
   is_available: boolean;
+  /** Max units orderable per local day. null = unlimited. */
+  daily_limit: number | null;
   sort_order: number;
   created_at: string;
   updated_at: string;
 }
+
+/** A menu item enriched with today's order count and remaining capacity. */
+export interface MenuItemAvailability {
+  soldToday: number;
+  /** Units left today; null = unlimited. */
+  remaining: number | null;
+}
+
+export type MenuItemWithAvailability = MenuItemWithCategory & MenuItemAvailability;
 
 export interface MenuItemWithCategory extends MenuItem {
   menu_categories: MenuCategory | null;

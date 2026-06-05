@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { InsertOrder, InsertOrderItem, OrderWithItems } from '@/types/database';
 import { sendOrderConfirmation } from '@/lib/email/send';
+import { getT } from '@/lib/i18n/server';
 
 export type OrderResult =
   | { success: true; id: string }
@@ -35,7 +36,7 @@ export async function createOrder(
   const anonSupabase = createClient();
   const { data: menuItems, error: menuError } = await anonSupabase
     .from('menu_items')
-    .select('id, price, is_available')
+    .select('id, price, is_available, daily_limit')
     .in('id', itemIds);
 
   if (menuError || !menuItems) {
@@ -52,6 +53,26 @@ export async function createOrder(
       return { success: false, error: 'One or more items are currently unavailable.' };
     }
     calculatedTotal += dbItem.price * item.quantity;
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // ── Daily limit enforcement ───────────────────────────────────────────────
+  // Authoritative server-side cap: reject items whose today's tally + requested
+  // quantity would exceed their daily_limit (null = unlimited). Localized message.
+  const { data: soldRows } = await anonSupabase.rpc('menu_sold_today');
+  const soldMap: Record<string, number> = {};
+  for (const row of (soldRows ?? []) as { menu_item_id: string; sold: number }[]) {
+    soldMap[row.menu_item_id] = Number(row.sold);
+  }
+  const { t } = getT();
+  for (const item of items) {
+    const dbItem = menuItems.find((m) => m.id === item.menu_item_id);
+    const limit = dbItem?.daily_limit;
+    if (limit == null) continue; // unlimited
+    const sold = soldMap[item.menu_item_id as string] ?? 0;
+    if (sold + item.quantity > limit) {
+      return { success: false, error: t('checkout.limitError', { item: item.item_name }) };
+    }
   }
   // ─────────────────────────────────────────────────────────────────────────
 

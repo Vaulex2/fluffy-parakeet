@@ -4,10 +4,10 @@ import { useState } from "react";
 import MenuGrid from "./MenuGrid";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { localizedField } from "@/lib/i18n";
-import type { MenuCategory, MenuItemWithCategory } from "@/types/database";
+import type { MenuCategory, MenuItemWithAvailability } from "@/types/database";
 
 interface MenuClientShellProps {
-  items: MenuItemWithCategory[];
+  items: MenuItemWithAvailability[];
   categories: MenuCategory[];
 }
 

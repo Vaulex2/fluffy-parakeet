@@ -5,20 +5,36 @@ import { useCart } from "@/components/cart/CartContext";
 import { useFlyToCart } from "@/components/cart/FlyToCartContext";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { localizedField } from "@/lib/i18n";
-import type { MenuItemWithCategory } from "@/types/database";
+import type { MenuItemWithAvailability } from "@/types/database";
+
+// Below this many remaining, surface a "Only N left today" hint to customers.
+const LOW_STOCK_THRESHOLD = 5;
 
 function formatPrice(uzs: number) {
   return uzs.toLocaleString("uz-UZ") + " UZS";
 }
 
-// Shared quantity stepper / add button used in both card and list row
-function QuantityControl({ item }: { item: MenuItemWithCategory }) {
+// Shared quantity stepper / add button used in both card and list row.
+// Respects the item's remaining daily capacity (null = unlimited).
+function QuantityControl({ item }: { item: MenuItemWithAvailability }) {
   const { addItem, items: cartItems, updateQuantity } = useCart();
-  const { locale } = useLanguage();
+  const { locale, t } = useLanguage();
   const fly = useFlyToCart();
   const cartEntry = cartItems.find((ci) => ci.id === item.id);
   const qty = cartEntry?.quantity ?? 0;
   const name = localizedField(item, "name", locale);
+  const { remaining } = item;
+
+  // Fully sold out for today — no add control at all.
+  if (remaining === 0) {
+    return (
+      <span className="font-headline tracking-tight uppercase text-[11px] px-3 py-1.5 rounded-full bg-surface border border-surface-border text-text-muted whitespace-nowrap">
+        {t("menu.soldOutToday")}
+      </span>
+    );
+  }
+
+  const atMax = remaining != null && qty >= remaining;
 
   if (qty > 0) {
     return (
@@ -35,7 +51,8 @@ function QuantityControl({ item }: { item: MenuItemWithCategory }) {
         </span>
         <button
           onClick={() => updateQuantity(item.id, qty + 1)}
-          className="w-6 h-6 rounded-full flex items-center justify-center text-text-muted hover:text-primary transition-colors"
+          disabled={atMax}
+          className="w-6 h-6 rounded-full flex items-center justify-center text-text-muted hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-text-muted"
           aria-label="Increase quantity"
         >
           <span className="material-symbols-outlined fill text-[16px]">add</span>
@@ -66,12 +83,24 @@ function QuantityControl({ item }: { item: MenuItemWithCategory }) {
   );
 }
 
+// "Only N left today" hint — shown when an item is low but not sold out.
+function LowStockNote({ item, className = "" }: { item: MenuItemWithAvailability; className?: string }) {
+  const { t } = useLanguage();
+  const { remaining } = item;
+  if (remaining == null || remaining === 0 || remaining > LOW_STOCK_THRESHOLD) return null;
+  return (
+    <span className={`font-body text-xs text-amber-400 ${className}`}>
+      {t("menu.onlyNLeft", { count: remaining })}
+    </span>
+  );
+}
+
 // Badge overlays for popular / featured items
 function ItemBadges({
   item,
   compact = false,
 }: {
-  item: MenuItemWithCategory;
+  item: MenuItemWithAvailability;
   compact?: boolean;
 }) {
   const { t } = useLanguage();
@@ -101,7 +130,7 @@ function ItemBadges({
 }
 
 interface MenuCardProps {
-  item: MenuItemWithCategory;
+  item: MenuItemWithAvailability;
   index: number;
 }
 
@@ -153,6 +182,7 @@ function MenuCard({ item, index }: MenuCardProps) {
                 {item.calories} kcal
               </span>
             )}
+            <LowStockNote item={item} className="block mt-0.5" />
           </div>
           <QuantityControl item={item} />
         </div>
@@ -210,6 +240,7 @@ function MenuListRow({ item, index }: MenuCardProps) {
                 {item.calories} kcal
               </span>
             )}
+            <LowStockNote item={item} className="block mt-0.5" />
           </div>
           <QuantityControl item={item} />
         </div>
@@ -219,7 +250,7 @@ function MenuListRow({ item, index }: MenuCardProps) {
 }
 
 interface MenuGridProps {
-  items: MenuItemWithCategory[];
+  items: MenuItemWithAvailability[];
   viewMode: "grid" | "list";
   hasActiveFilters: boolean;
   searchQuery: string;
