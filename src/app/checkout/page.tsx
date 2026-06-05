@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { createBrowserClient } from "@supabase/ssr";
@@ -14,6 +15,7 @@ function formatPrice(uzs: number) {
 
 export default function CheckoutPage() {
   const { t } = useLanguage();
+  const router = useRouter();
   const { items, total, clearCart } = useCart();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -179,6 +181,9 @@ export default function CheckoutPage() {
         setConfirmedTotal(payable);
         clearCart();
         setOrderId(result.id);
+        // Points balance changed — refresh server components (incl. the navbar
+        // in cached layouts) so the loyalty chip isn't stale.
+        if (discount > 0) router.refresh();
       } else {
         setError(result.error);
       }

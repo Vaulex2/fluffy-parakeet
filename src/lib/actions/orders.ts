@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { InsertOrder, InsertOrderItem, OrderWithItems } from '@/types/database';
@@ -144,6 +145,12 @@ export async function createOrder(
       type: order.order_type === 'dine_in' ? 'pickup' : order.order_type,
       address: order.delivery_address ?? undefined,
     }).catch(() => {});
+  }
+
+  // Redeeming points changed the balance — bust the cached layout so the
+  // navbar loyalty chip refreshes on the next navigation.
+  if (discount > 0) {
+    revalidatePath('/', 'layout');
   }
 
   return { success: true, id: newOrder.id };
