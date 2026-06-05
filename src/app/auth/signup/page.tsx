@@ -226,7 +226,7 @@ export default function SignUpPage() {
                 required
                 autoComplete="new-password"
                 className="w-full bg-background border border-surface-border rounded-xl px-4 py-3 text-text-primary font-body text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
-                placeholder="••••••••"
+                placeholder="Re-enter your password"
               />
             </div>
 
