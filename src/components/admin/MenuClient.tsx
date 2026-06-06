@@ -173,7 +173,7 @@ export default function MenuClient({
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="font-headline text-4xl text-text-primary tracking-tight">MENU</h1>
+        <h1 className="font-headline text-3xl sm:text-4xl text-text-primary tracking-tight">MENU</h1>
         <button
           onClick={openAdd}
           className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg font-body text-sm hover:bg-red-700 transition-colors"
@@ -291,34 +291,36 @@ export default function MenuClient({
         <div className="px-5 py-4 border-b border-surface-border">
           <h2 className="font-headline text-base text-text-primary tracking-tight">CATEGORIES</h2>
         </div>
-        <table className="w-full text-sm font-body">
-          <thead>
-            <tr className="text-text-muted text-xs border-b border-surface-border">
-              <th className="px-5 py-3 text-left font-medium">NAME</th>
-              <th className="px-5 py-3 text-left font-medium">SLUG</th>
-              <th className="px-5 py-3 text-left font-medium">ORDER</th>
-              <th className="px-5 py-3 text-left font-medium"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-surface-border/50">
-            {categories.map((c) => (
-              <tr key={c.id} className="hover:bg-surface/50">
-                <td className="px-5 py-3 text-text-primary">{c.name}</td>
-                <td className="px-5 py-3 text-text-muted font-mono text-xs">{c.slug}</td>
-                <td className="px-5 py-3 text-text-muted">{c.sort_order}</td>
-                <td className="px-5 py-3">
-                  <button
-                    onClick={() => doDeleteCat(c.id)}
-                    disabled={isPending}
-                    className="text-primary text-xs hover:underline disabled:opacity-40"
-                  >
-                    Delete
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm font-body">
+            <thead>
+              <tr className="text-text-muted text-xs border-b border-surface-border">
+                <th className="px-5 py-3 text-left font-medium">NAME</th>
+                <th className="px-5 py-3 text-left font-medium">SLUG</th>
+                <th className="px-5 py-3 text-left font-medium">ORDER</th>
+                <th className="px-5 py-3 text-left font-medium"></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-surface-border/50">
+              {categories.map((c) => (
+                <tr key={c.id} className="hover:bg-surface/50">
+                  <td className="px-5 py-3 text-text-primary">{c.name}</td>
+                  <td className="px-5 py-3 text-text-muted font-mono text-xs">{c.slug}</td>
+                  <td className="px-5 py-3 text-text-muted">{c.sort_order}</td>
+                  <td className="px-5 py-3">
+                    <button
+                      onClick={() => doDeleteCat(c.id)}
+                      disabled={isPending}
+                      className="text-primary text-xs hover:underline disabled:opacity-40"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <div className="px-5 py-4 border-t border-surface-border">
           <p className="font-body text-xs text-text-muted mb-3">Add Category</p>
           <div className="flex gap-2">
@@ -326,7 +328,7 @@ export default function MenuClient({
               value={catName}
               onChange={(e) => setCatName(e.target.value)}
               placeholder="Category name *"
-              className="bg-background border border-surface-border rounded-lg px-3 py-2 text-text-primary font-body text-sm focus:outline-none focus:border-primary w-52"
+              className="flex-1 min-w-0 bg-background border border-surface-border rounded-lg px-3 py-2 text-text-primary font-body text-sm focus:outline-none focus:border-primary"
             />
             <button
               onClick={addCategory}
@@ -440,7 +442,7 @@ export default function MenuClient({
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Field label="Category">
                 <select
                   value={form.category_id ?? ""}

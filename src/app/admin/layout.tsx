@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import AdminNav from "@/components/admin/AdminNav";
+import AdminShell from "@/components/admin/AdminShell";
 
 export const metadata = {
   title: "Admin | SushiGO",
@@ -29,10 +29,5 @@ export default async function AdminLayout({
 
   if (profile?.role !== "admin") redirect("/");
 
-  return (
-    <div className="min-h-screen bg-background">
-      <AdminNav userEmail={user.email ?? ""} />
-      <main className="pl-64 p-8 min-h-screen">{children}</main>
-    </div>
-  );
+  return <AdminShell userEmail={user.email ?? ""}>{children}</AdminShell>;
 }

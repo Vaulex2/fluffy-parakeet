@@ -60,7 +60,7 @@ export default function ReservationsClient({
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="font-headline text-4xl text-text-primary tracking-tight">RESERVATIONS</h1>
+        <h1 className="font-headline text-3xl sm:text-4xl text-text-primary tracking-tight">RESERVATIONS</h1>
         <input
           type="date"
           value={selectedDate}

@@ -15,7 +15,15 @@ const NAV = [
   { href: "/admin/users", label: "Users", icon: "people" },
 ];
 
-export default function AdminNav({ userEmail }: { userEmail: string }) {
+export default function AdminNav({
+  userEmail,
+  open,
+  onClose,
+}: {
+  userEmail: string;
+  open: boolean;
+  onClose: () => void;
+}) {
   const pathname = usePathname();
   const [reduceMotion, setReduceMotion] = useState(false);
 
@@ -27,11 +35,32 @@ export default function AdminNav({ userEmail }: { userEmail: string }) {
     return () => mq.removeEventListener("change", update);
   }, []);
 
+  // Dismiss the mobile drawer whenever the route changes (a no-op on desktop,
+  // where it stays pinned open).
+  useEffect(() => {
+    onClose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
   return (
-    <nav className="fixed left-0 top-0 z-40 w-64 h-screen bg-[#0f0f0f] border-r border-surface-border flex flex-col">
-      <div className="px-5 py-5 border-b border-surface-border">
-        <p className="font-headline text-xl text-primary tracking-tight">SUSHIGO</p>
-        <p className="text-text-muted font-body text-xs mt-0.5">Admin Panel</p>
+    <nav
+      className={`fixed left-0 top-0 z-50 w-64 h-screen bg-[#0f0f0f] border-r border-surface-border flex flex-col transition-transform duration-300 ease-[var(--expo)] lg:translate-x-0 ${
+        open ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
+      <div className="px-5 py-5 border-b border-surface-border flex items-start justify-between">
+        <div>
+          <p className="font-headline text-xl text-primary tracking-tight">SUSHIGO</p>
+          <p className="text-text-muted font-body text-xs mt-0.5">Admin Panel</p>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close menu"
+          className="lg:hidden -mr-1 text-text-muted hover:text-text-primary transition-colors"
+        >
+          <span className="material-symbols-outlined text-[22px]">close</span>
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">

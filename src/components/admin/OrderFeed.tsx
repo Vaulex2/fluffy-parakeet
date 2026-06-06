@@ -88,7 +88,7 @@ export default function OrderFeed({ initialOrders }: { initialOrders: OrderWithI
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <h1 className="font-headline text-4xl text-text-primary tracking-tight">ORDERS</h1>
+        <h1 className="font-headline text-3xl sm:text-4xl text-text-primary tracking-tight">ORDERS</h1>
         <span className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 rounded-full px-3 py-1">
           <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
           <span className="text-green-400 font-body text-xs">Live</span>
@@ -126,7 +126,7 @@ export default function OrderFeed({ initialOrders }: { initialOrders: OrderWithI
                 className="bg-surface border border-surface-border rounded-xl overflow-hidden"
               >
                 <div className={`h-1 ${BAR_CLS[order.status]}`} />
-                <div className="p-5 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-5">
+                <div className="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-5">
                   <div className="space-y-3 min-w-0">
                     <div className="flex flex-wrap items-center gap-3">
                       <span className="font-mono text-text-muted text-xs">

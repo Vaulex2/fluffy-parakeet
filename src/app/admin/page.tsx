@@ -41,7 +41,7 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <h1 className="font-headline text-4xl text-text-primary tracking-tight">DASHBOARD</h1>
+      <h1 className="font-headline text-3xl sm:text-4xl text-text-primary tracking-tight">DASHBOARD</h1>
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard icon="calendar_month" label="Today's Reservations" accent="text-green-400">

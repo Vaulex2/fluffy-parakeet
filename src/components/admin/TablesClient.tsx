@@ -59,7 +59,7 @@ export default function TablesClient({ initialTables }: { initialTables: Restaur
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="font-headline text-4xl text-text-primary tracking-tight">TABLES</h1>
+        <h1 className="font-headline text-3xl sm:text-4xl text-text-primary tracking-tight">TABLES</h1>
         <p className="text-text-muted font-body text-sm">
           {initialTables.filter((t) => t.is_available).length} active
         </p>
@@ -121,22 +121,22 @@ export default function TablesClient({ initialTables }: { initialTables: Restaur
       <section className="bg-surface border border-surface-border rounded-xl p-5">
         <h2 className="font-headline text-base text-text-primary tracking-tight mb-4">QUICK ADD TABLE</h2>
         <div className="flex gap-3 flex-wrap items-end">
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 flex-1 min-w-[7rem]">
             <label className="block text-text-muted text-xs font-body font-medium uppercase tracking-widest">Number</label>
             <input
               type="number"
               value={addForm.table_number}
               onChange={(e) => setAddForm((f) => ({ ...f, table_number: e.target.value }))}
               placeholder="e.g. 05"
-              className={inputCls + " w-28"}
+              className={inputCls + " flex-1 min-w-[7rem]"}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 flex-1 min-w-[8rem]">
             <label className="block text-text-muted text-xs font-body font-medium uppercase tracking-widest">Capacity</label>
             <select
               value={addForm.seat_count}
               onChange={(e) => setAddForm((f) => ({ ...f, seat_count: e.target.value }))}
-              className={inputCls + " w-32"}
+              className={inputCls + " flex-1 min-w-[8rem]"}
             >
               {[2, 4, 6, 8, 10, 12].map((n) => (
                 <option key={n} value={n}>{n} Guests</option>
@@ -175,7 +175,7 @@ export default function TablesClient({ initialTables }: { initialTables: Restaur
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="block text-text-muted text-xs font-body uppercase tracking-widest">Number</label>
                 <input
